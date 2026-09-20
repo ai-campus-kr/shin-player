@@ -361,10 +361,11 @@ public partial class MainWindow
         {
             var opening = OpenFilesAsync(new[] { fixture });
             var queued = OpenFilesAsync(new[] { Path.Combine(fixtureDirectory, "hevc.mkv") });
+            var youtube = OpenYouTubeAsync("https://www.youtube.com/watch?v=M7lc1UVf-VE");
             await HideToTrayAsync();
-            await Task.WhenAll(opening, queued);
+            await Task.WhenAll(opening, queued, youtube);
             await WaitUntilAsync(() => _player!.Flag("idle-active"), TimeSpan.FromSeconds(5));
-            if (_loaded || IsVisible || _currentPath != null) throw new Exception("Queued open survived close-to-tray");
+            if (_loaded || IsVisible || _currentPath != null || _youtubeWindow != null) throw new Exception("Queued local/YouTube open survived close-to-tray");
             Show();
             await OpenFilesAsync(new[] { fixture });
             return null;

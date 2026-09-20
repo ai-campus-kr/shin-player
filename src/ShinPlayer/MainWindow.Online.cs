@@ -34,16 +34,23 @@ public partial class MainWindow
     private async Task OpenYouTubeAsync(string url)
     {
         if (_closed || !YouTubePage.TryNormalize(url, out var normalized)) return;
-        if (_player != null) await _player.SetAsync("pause", true);
-        if (_closed) return;
-        _videoChat?.Close();
-        if (_youtubeWindow == null)
+        int generation = _openGeneration;
+        await _operations.WaitAsync();
+        try
         {
-            _youtubeWindow = new YouTubeWindow(normalized) { Owner = this };
-            _youtubeWindow.Closed += (_, _) => _youtubeWindow = null;
-            _youtubeWindow.Show();
+            if (_closed || generation != _openGeneration) return;
+            if (_player != null) await _player.SetAsync("pause", true);
+            if (_closed || generation != _openGeneration) return;
+            _videoChat?.Close();
+            if (_youtubeWindow == null)
+            {
+                _youtubeWindow = new YouTubeWindow(normalized) { Owner = this };
+                _youtubeWindow.Closed += (_, _) => _youtubeWindow = null;
+                _youtubeWindow.Show();
+            }
+            else { _youtubeWindow.NavigateVideo(normalized); _youtubeWindow.Activate(); }
         }
-        else { _youtubeWindow.NavigateVideo(normalized); _youtubeWindow.Activate(); }
+        finally { _operations.Release(); }
     }
     private void ShowVideoChat()
     {
