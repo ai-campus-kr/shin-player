@@ -401,6 +401,7 @@ public partial class MainWindow
         await RunCaptureTestsAsync(Test, fixtureDirectory, outputDirectory);
         await RunDesignTestsAsync(Test, fixtureDirectory, outputDirectory);
         await RunAudioTestsAsync(Test, fixtureDirectory, outputDirectory);
+        await OnlineSelfTest.RunAsync(Test, fixtureDirectory, outputDirectory, this);
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "complete.txt"), failures == 0 ? "PASS" : $"FAIL {failures}");
         Environment.ExitCode = failures == 0 ? 0 : 1;
     }

@@ -8,9 +8,11 @@
 
 細かな速度調整、音量ブースト、内蔵字幕を使った一括キャプチャに対応する Windows 動画プレーヤーです。
 
+**0.6 ベータの新機能：** YouTube ブラウザー・自分の API キーで字幕検索・根拠の時刻へ自動移動。
+
 **Windows 10/11 x64 · 無料 · アプリのソースは MIT ライセンスで公開**
 
-**[最新版をダウンロード](https://github.com/ai-campus-kr/shin-player/releases/latest)**　·　[6秒のデモを試す](https://github.com/ai-campus-kr/shin-player/releases/download/v0.5.0/ShinPlayer-subtitle-demo.mp4)　·　[リリースを見る](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.5.0)
+**[0.6 ベータ版をダウンロード](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)**　·　[6秒のデモを試す](https://github.com/ai-campus-kr/shin-player/releases/download/v0.5.0/ShinPlayer-subtitle-demo.mp4)　·　[リリースを見る](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)
 
 </div>
 
@@ -26,7 +28,7 @@
 
 ## 使い始める
 
-1. [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/latest)から `ShinPlayer-バージョン-win-x64.zip` をダウンロードし、すべて展開します。
+1. [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)から `ShinPlayer-バージョン-win-x64.zip` をダウンロードし、すべて展開します。
 2. **`Install.cmd`** を実行します。管理者権限や .NET の別途インストールは不要です。
 3. スタートメニューから **신플레이어** を開き、動画をドラッグ＆ドロップするか、**영상 열기**（動画を開く）を押します。
 
@@ -147,6 +149,8 @@ DRM で保護された動画、破損ファイル、特殊な独自形式の再�
 | `Shift+[` / `Shift+]` | 0.05倍刻みで速度変更 |
 | `F` / `F11` | 全画面 |
 | `A` | A を設定 → B を設定 → リピート解除 |
+| `Ctrl+U` | YouTube リンクを開く |
+| `Ctrl+J` | ローカル動画 AI チャット |
 | `Ctrl+S` | 現在のフレームを PNG で保存 |
 | `Ctrl+Shift+S` | 内蔵字幕ごとの一括キャプチャ |
 
@@ -175,28 +179,37 @@ DRM で保護された動画、破損ファイル、特殊な独自形式の再�
 
 </details>
 
-## 現在の機能は API 不要
+## YouTube と動画 AI チャット — 0.6 ベータ
 
-**音量ブーストと字幕キャプチャは PC 内で処理します。GPT/API キーやトークン料金は不要です。** 動画や字幕をサーバーにアップロードしません。
+**「緑のシーンを探して」→ 根拠となる字幕が見つかると、その時刻へ移動します。** [ベータ版をダウンロード](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)
 
-現在のバージョンには、**ChatGPT API キーの入力欄と AI 分析機能はありません**。今後の連携条件は以下のとおりです。
+1. **링크（リンク）/ Ctrl+U** から YouTube の URL を入力します。アプリ内の **Edge WebView2** で通常の YouTube ページを開きます。
+2. YouTube の **もっと見る → 文字起こしを表示**を開き、アプリの **자막 · AI 채팅 → 자막 불러오기**（字幕・AI チャット → 字幕を読み込む）を選びます。
+3. **API 설정**（API 設定）で自分の OpenAI キーを保存して質問します。最初の根拠区間へ自動移動し、時刻ボタンから再度移動できます。
 
-<details>
-<summary><strong>AI 機能の開発条件 — まだ実装されていません</strong></summary>
+ローカル動画は **AI / Ctrl+J → 자막 불러오기** を使い、必要に応じて言語を選択します。対象は **内蔵テキスト字幕**のみ。外部 SRT・画像字幕・OCR・音声文字起こしは使いません。
 
-- 使用予定の OpenAI API モデルは **`gpt-5.4-mini`** です。
-- 動画ファイル自体に含まれる**内蔵テキスト字幕**を抽出できる場合のみ、AI 検索・要約を有効にします。再生時に字幕表示をオフにしていても、対応する内蔵字幕があれば対象です。
-- 外部 SRT、自動読み込みの外部字幕、画像形式の内蔵字幕、映像に焼き込まれた文字は対象外です。
-- 対応字幕がない場合や抽出に失敗した場合は、理由を表示して AI 機能を無効にします。OpenAI API は呼び出さず、音声の文字起こしや OCR で代替しません。
-- この条件は今後の AI 機能だけに適用します。通常の再生と既存の字幕表示はそのまま使用できます。
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.1/docs/screenshots/v0.6.0-beta.1/01-chat-ready.png" width="520" alt="実際の動画 AI チャットと OpenAI API キー設定画面"></p>
 
-</details>
+<sub>合成字幕とテスト用キーを使った実際の WPF 検査画面です。実際の OpenAI リクエストや生成回答の画像ではありません。</sub>
+
+- モデルは **`gpt-5.4-mini`**。キーは Windows ユーザー用に暗号化して `%LOCALAPPDATA%\ShinPlayer\openai-key.dat` に保存し、アプリから削除できます。
+- 質問時に **質問・動画名・選択した字幕テキスト**を OpenAI に送ります。動画・音声ファイルは送りません。自分のアカウントの料金と上限が適用され、入出力トークン数を表示します。
+- 長い字幕はローカルで候補を選び、行の付加情報を含む 60,000 文字の予算内に収めます。**部分検索**と表示され、文脈を見落とす場合があります。
+- 根拠なし・不正な応答・取り消し・ウィンドウ終了・動画変更後の回答では移動しません。広告再生中も移動しません。
+- 字幕はチャットのメモリに保持し、会話履歴ファイルは作りません。Web のログインと Cookie は `%LOCALAPPDATA%\ShinPlayer\youtube-browser` に保存します。Chrome・Edge・Whale の既存プロファイルや拡張機能は取り込みません。
+
+WebView2 Runtime がない場合は Microsoft のインストール案内を表示します。YouTube のログイン・地域・動画制限は適用されます。**브라우저에서 열기**で既定のブラウザーを開けますが、外部ウィンドウには AI 移動は連携しません。Web 動画は YouTube のコントロールを使い、ローカル mpv の速度・ブースト・一括キャプチャ設定は適用しません。ストリーム抽出やダウンローダーは使いません。
+
+**ベータ版の検証範囲：** API は模擬応答、Web 字幕と時間移動は WebView2 の合成ページで検査しました。有料 OpenAI API の実呼び出しはしていません。確認時には YouTube の文字起こしパネルが空で、実サイトとの連携を最後まで検証できませんでした。字幕の提供状況やサイト変更で動作しない場合があります。
+
+音量ブーストとローカル字幕キャプチャは引き続き **API キー・トークン料金なしで PC 内で処理**します。
 
 ## 開発と検証
 
-C# / .NET 8 WPF と mpv で作られた Windows ネイティブアプリです。実行にブラウザーや開発サーバーは必要ありません。
+C# / .NET 8 WPF と mpv で作られた Windows ネイティブアプリです。ローカル再生は mpv、任意の YouTube 機能は Edge WebView2 を使用します。開発サーバーは不要です。
 
-0.5.0 は実際の WPF/libmpv を使う **61項目の統合検査に合格**し、配布 ZIP からインストールした実行ファイルも確認しています。変更点と既知の問題は[変更履歴](CHANGELOG.md)を参照してください。変更履歴と画像の詳しい出典は現在、韓国語です。
+0.6 ベータ版は WPF/libmpv と隔離された WebView2 の **71項目の統合検査**で検証します。API は模擬応答を使い、実サービスの検証範囲は上記のとおりです。[変更履歴](CHANGELOG.md)
 
 <details>
 <summary><strong>ソースからビルド・インストール</strong></summary>
@@ -242,7 +255,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 キャプチャ検査は別の合成 MP4/MKV を使用します。内蔵トラック選択、字幕中間時点の実際のフレーム色、PNG の韓国語字幕、字幕なし設定、重複保存、キャンセル時の部分結果保持、作業プロセス終了、再生位置保持、キャプチャ画面を確認します。検査用画像は `artifacts` 配下にのみ保存します。
 
-統合検査は計61項目です。シークは2種類のウィンドウサイズと再生リストの状態にわたる28地点、レイアウト更新前の連続入力、マウスを離す位置、キャプチャ解除、ファイル切り替え、全画面を含みます。1〜2倍の WPF レイアウト変換も確認しますが、物理マウス入力や実モニターの DPI 変更は自動化していません。4種類の UI の起動画面・最小サイズ・再生リスト・キャプチャ画面をレンダーし、ボタンの重なりと字幕選択表示を確認します。設定の保存形式と旧設定との互換性、選択ボタン、再生中のスタイル変更に伴う位置・速度の保持も対象です。
+統合検査は計71項目です。シークは2種類のウィンドウサイズと再生リストの状態にわたる28地点、レイアウト更新前の連続入力、マウスを離す位置、キャプチャ解除、ファイル切り替え、全画面を含みます。1〜2倍の WPF レイアウト変換も確認しますが、物理マウス入力や実モニターの DPI 変更は自動化していません。4種類の UI の起動画面・最小サイズ・再生リスト・キャプチャ画面をレンダーし、ボタンの重なりと字幕選択表示を確認します。設定の保存形式と旧設定との互換性、選択ボタン、再生中のスタイル変更に伴う位置・速度の保持も対象です。
 
 音量ブースト検査は合成 PCM 音源をミュートで再生し、mpv フィルター出力のピーク／RMS を測定します。各段階の実際のゲイン、最大時のリミッター、オフ時の元の振幅への復帰、初期設定の復元、素早い連続変更、他のフィルターの保持を確認します。
 
@@ -272,4 +285,4 @@ Shin Player 本体のソースは [MIT ライセンス](LICENSE)で公開して�
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/latest) · [不具合報告・機能の提案](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1) · [不具合報告・機能の提案](https://github.com/ai-campus-kr/shin-player/issues)

@@ -37,3 +37,15 @@ The self-contained Windows build includes .NET 8 and Windows Desktop runtime fil
 ## Application icon and test material
 
 The ShinPlayer icon consists of original geometric shapes. Test footage uses FFmpeg's synthetic testsrc2 and sine sources; subtitle text was created for this project. No user videos or third-party films are included.
+
+## Microsoft Edge WebView2 SDK and Runtime
+
+The application uses the `Microsoft.Web.WebView2` NuGet package, version `1.0.4191.47`, for its optional YouTube browser window. The SDK assemblies and loader are included in the application distribution; the exact package's `LICENSE.txt` and `NOTICE.txt` are copied to `licenses/webview2-sdk`. Source package metadata: https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4191.47 .
+
+The Microsoft Edge WebView2 Evergreen Runtime is a separate Microsoft product and is **not** included in the ShinPlayer ZIP. If it is missing, the YouTube window links to Microsoft's official installation page: https://developer.microsoft.com/microsoft-edge/webview2/ . Its terms apply separately from the ShinPlayer MIT license.
+
+## External services
+
+YouTube pages are loaded directly in WebView2 and remain subject to YouTube's terms, login requirements, availability and video restrictions. ShinPlayer is not affiliated with or endorsed by YouTube, Google, Microsoft or OpenAI. It does not extract video stream URLs or bundle a YouTube downloader. Subtitle chat reads the transcript displayed by the user in the page; this integration may require updates when the site changes.
+
+Optional AI chat sends the user's question, video label and selected text subtitles to OpenAI's Responses API using the user's own key and the `gpt-5.4-mini` model. It requests `store: false`; this is not a promise of zero provider retention. No video or audio is submitted. OpenAI's account terms, data policies and usage charges apply.

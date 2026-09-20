@@ -12,7 +12,7 @@
     <StartupObject>ShinPlayer.Program</StartupObject>
     <ApplicationIcon>Assets\ShinPlayer.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.5.0</Version>
+    <Version>0.6.0-beta.1</Version>
     <Product>신플레이어</Product>
     <Description>빠른 Windows 영상 플레이어</Description>
     <Company>ShinPlayer</Company>
@@ -20,6 +20,7 @@
     <PublishSingleFile>false</PublishSingleFile>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
     <Content Include="..\..\native\libmpv-2.dll" Link="libmpv-2.dll" CopyToOutputDirectory="PreserveNewest" Condition="'$(IncludeNativeEngine)' != 'false'" />
     <Resource Include="Assets\ShinPlayer.ico" />
   </ItemGroup>

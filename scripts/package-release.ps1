@@ -21,7 +21,7 @@ echo Installed. Open ShinPlayer from the Start menu.
 pause
 '@
 [IO.File]::WriteAllText((Join-Path $stage 'Install.cmd'), ($launcher -replace "`r?`n", "`r`n"), [Text.Encoding]::ASCII)
-Copy-Item -LiteralPath (Join-Path $projectRoot 'README.md') -Destination $stage
+foreach ($name in @('README.md','README.en.md','README.ja.md','README.zh-CN.md')) { Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $stage }
 $output = Join-Path $projectRoot 'dist\release'
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 $binaryZip = Join-Path $output "ShinPlayer-$version-win-x64.zip"

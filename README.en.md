@@ -8,9 +8,11 @@
 
 A Windows video player with fine speed control, audio boost, and batch frame capture from embedded subtitles.
 
+**New in 0.6 beta:** YouTube browser · subtitle search with your own API key · jump to supporting moments.
+
 **Windows 10/11 x64 · Free · App source under the MIT license**
 
-**[Download the latest version](https://github.com/ai-campus-kr/shin-player/releases/latest)**　·　[Try the 6-second demo](https://github.com/ai-campus-kr/shin-player/releases/download/v0.5.0/ShinPlayer-subtitle-demo.mp4)　·　[Explore the release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.5.0)
+**[Download 0.6 beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)**　·　[Try the 6-second demo](https://github.com/ai-campus-kr/shin-player/releases/download/v0.5.0/ShinPlayer-subtitle-demo.mp4)　·　[Explore the release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)
 
 </div>
 
@@ -26,7 +28,7 @@ A Windows video player with fine speed control, audio boost, and batch frame cap
 
 ## Quick start
 
-1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/latest)** and extract the entire archive.
+1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)** and extract the entire archive.
 2. Run **`Install.cmd`**. No administrator privileges or separate .NET installation are required.
 3. Open **신플레이어** from the Start menu, then drop a video onto it or click **영상 열기** (Open video).
 
@@ -147,6 +149,8 @@ Playback is not guaranteed for DRM-protected videos, damaged files, or specializ
 | `Shift+[` / `Shift+]` | Adjust speed by 0.05× |
 | `F` / `F11` | Full screen |
 | `A` | Set A → set B → clear repeat |
+| `Ctrl+U` | Open a YouTube link |
+| `Ctrl+J` | Local video AI chat |
 | `Ctrl+S` | Save current frame as PNG |
 | `Ctrl+Shift+S` | Batch capture from embedded subtitles |
 
@@ -175,28 +179,37 @@ Playback is not guaranteed for DRM-protected videos, damaged files, or specializ
 
 </details>
 
-## Current features work without an API
+## YouTube and video chat — 0.6 beta
 
-**Audio boost and subtitle capture run on your PC. They need no GPT/API key and incur no token costs.** Videos and subtitles are not uploaded to a server.
+**“Find the green scene” → jump to the first supporting subtitle cue.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)
 
-The current release has **no ChatGPT API key field or AI analysis features**. The planned integration is described below.
+1. Choose **링크 (Link) / Ctrl+U** and paste a YouTube URL. The app opens the normal YouTube page in **Edge WebView2**.
+2. Open YouTube's **More → Show transcript**, then choose **자막 · AI 채팅 → 자막 불러오기** (Subtitle / AI chat → Load subtitles) in the app toolbar.
+3. Save your own OpenAI key under **API 설정** (API settings), then ask a question. The first supporting moment opens automatically; timestamp buttons revisit results.
 
-<details>
-<summary><strong>AI development requirements — not implemented yet</strong></summary>
+For local video, use **AI / Ctrl+J → 자막 불러오기** and select a language if needed. Only **embedded text subtitles** qualify. External SRT, image subtitles, OCR and speech transcription are excluded.
 
-- The planned OpenAI API model is **`gpt-5.4-mini`**.
-- AI search and summarization will be enabled only when **embedded text subtitles** can be extracted from the video itself. Hiding subtitles during playback does not exclude an otherwise supported track.
-- External SRT files, automatically loaded external subtitles, image-based embedded subtitles, and text burned into the video will be excluded.
-- If supported subtitles are absent or extraction fails, AI features will be disabled with an explanation. No OpenAI API request will be made, and speech transcription or OCR will not be used as a fallback.
-- These conditions apply only to future AI features. Normal playback and existing subtitle display remain available.
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.1/docs/screenshots/v0.6.0-beta.1/01-chat-ready.png" width="520" alt="Actual video chat window and OpenAI API key settings"></p>
 
-</details>
+<sub>An actual WPF test window with synthetic subtitles and a test key. This is not a live OpenAI request or generated-answer screenshot.</sub>
+
+- Model: **`gpt-5.4-mini`**. Keys are encrypted for the current Windows user at `%LOCALAPPDATA%\ShinPlayer\openai-key.dat` and can be deleted in the app.
+- Asking sends your **question, video label and selected subtitle text** to OpenAI, never video or audio files. Your account's charges and limits apply. Each response shows input/output token usage.
+- Long transcripts use local candidate selection within a 60,000-character budget including per-cue overhead. A **partial search** notice appears; context may be missed.
+- Missing evidence, invalid answers, cancelled requests and responses after window closure or video changes cannot trigger seeking. Seeking is blocked during ads.
+- Chat subtitles stay in memory; no conversation file is written. Web login and cookies use `%LOCALAPPDATA%\ShinPlayer\youtube-browser`. Existing Chrome, Edge or Whale profiles and extensions are not imported.
+
+Missing WebView2 Runtime opens Microsoft's installation guidance. YouTube login, region and video restrictions still apply. **브라우저에서 열기** opens the default browser, without AI seek integration. Web videos use YouTube's controls; local mpv speed, audio boost and batch capture settings do not apply. No stream extraction or downloader is used.
+
+**Beta validation:** API behavior uses mock responses; DOM transcript reading and seeking were tested on a synthetic WebView2 page. No live paid OpenAI request was made. YouTube showed an empty transcript panel during verification, so live transcript integration could not be verified end to end. Subtitle availability and site changes may prevent it from working.
+
+Audio boost and local subtitle capture still work **on your PC without API keys or token costs**.
 
 ## Development and verification
 
-A native Windows app built with C# / .NET 8 WPF and mpv. No browser or development server is needed to run it.
+A native Windows app built with C# / .NET 8 WPF and mpv. Local playback uses mpv; the optional YouTube window uses Edge WebView2. No development server is needed.
 
-Version 0.5.0 passed **61 integration checks using actual WPF/libmpv**, including verification of the executable installed from the release ZIP. See the [changelog](CHANGELOG.md) for changes and known issues; the changelog and detailed image provenance are currently in Korean.
+The 0.6 beta has **71 integration checks** using WPF/libmpv and isolated WebView2. API tests use mock responses; live-service validation limits are described above. See the [changelog](CHANGELOG.md).
 
 <details>
 <summary><strong>Build and install from source</strong></summary>
@@ -242,7 +255,7 @@ Timing measurements use synthetic 640×360 media on the development PC. `loadMs`
 
 Capture checks use separate synthetic MP4/MKV files. They verify embedded track selection, actual frame colors at subtitle midpoints, Korean text in PNGs, the no-subtitle option, duplicate output, partial results after cancellation, worker-process termination, playback-position preservation, and the capture dialog. Test images are saved only under `artifacts`.
 
-There are 61 integration checks. Seeking covers 28 points across two window sizes and playlist states, repeated input before layout refresh, release position, capture loss, file changes, and full screen. WPF layout transforms from 1× to 2× are tested; physical mouse input and real monitor-DPI changes are not automated. UI checks render all four styles at startup and minimum size, plus playlists and capture dialogs, checking for overlapping buttons and subtitle-selection visibility. Settings serialization, backward compatibility, selection buttons, and position/speed preservation during live style changes are also covered.
+There are 71 integration checks. Seeking covers 28 points across two window sizes and playlist states, repeated input before layout refresh, release position, capture loss, file changes, and full screen. WPF layout transforms from 1× to 2× are tested; physical mouse input and real monitor-DPI changes are not automated. UI checks render all four styles at startup and minimum size, plus playlists and capture dialogs, checking for overlapping buttons and subtitle-selection visibility. Settings serialization, backward compatibility, selection buttons, and position/speed preservation during live style changes are also covered.
 
 Audio-boost checks play synthetic PCM audio while muted and measure peak/RMS levels at the mpv filter output. They verify the actual gain of every preset, the limiter at maximum boost, restoration when disabled, initial state restoration, rapid adjustment, and preservation of other filters.
 
@@ -272,4 +285,4 @@ Shin Player’s own source is released under the [MIT license](LICENSE). Copyrig
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/latest) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)
