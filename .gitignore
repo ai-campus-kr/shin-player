@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+native/*.7z
+native/*.dll
+native/*.a
+native/include/
+artifacts/
+dist/
+.vs/
+*.lnk
+검증결과.md
+*.user
+*.suo

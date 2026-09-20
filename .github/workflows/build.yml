@@ -1,0 +1,26 @@
+name: Windows package
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Compile with warnings as errors
+        shell: pwsh
+        run: dotnet build src/ShinPlayer/ShinPlayer.csproj -c Release -p:IncludeNativeEngine=false --warnaserror
+      - name: Package application and corresponding application source
+        shell: pwsh
+        run: ./scripts/package-release.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShinPlayer-win-x64
+          path: dist/release/*
+          if-no-files-found: error

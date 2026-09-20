@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>ShinPlayer</AssemblyName>
+    <RootNamespace>ShinPlayer</RootNamespace>
+    <StartupObject>ShinPlayer.Program</StartupObject>
+    <ApplicationIcon>Assets\ShinPlayer.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>0.1.1</Version>
+    <Product>신플레이어</Product>
+    <Description>빠른 Windows 영상 플레이어</Description>
+    <Company>ShinPlayer</Company>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishSingleFile>false</PublishSingleFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="..\..\native\libmpv-2.dll" Link="libmpv-2.dll" CopyToOutputDirectory="PreserveNewest" Condition="'$(IncludeNativeEngine)' != 'false'" />
+    <Resource Include="Assets\ShinPlayer.ico" />
+  </ItemGroup>
+</Project>
