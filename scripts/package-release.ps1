@@ -20,7 +20,7 @@ if errorlevel 1 (
 echo Installed. Open ShinPlayer from the Start menu.
 pause
 '@
-[IO.File]::WriteAllText((Join-Path $stage 'Install.cmd'), $launcher.Replace("`n", "`r`n"), [Text.Encoding]::ASCII)
+[IO.File]::WriteAllText((Join-Path $stage 'Install.cmd'), ($launcher -replace "`r?`n", "`r`n"), [Text.Encoding]::ASCII)
 Copy-Item -LiteralPath (Join-Path $projectRoot 'README.md') -Destination $stage
 $output = Join-Path $projectRoot 'dist\release'
 New-Item -ItemType Directory -Force -Path $output | Out-Null

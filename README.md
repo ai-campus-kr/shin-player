@@ -2,6 +2,8 @@
 
 빠른 조작과 세밀한 배속 재생을 위한 Windows 10/11 x64 영상 플레이어입니다. C# / .NET 8 WPF로 만든 네이티브 앱에 mpv를 내장했습니다. 브라우저나 개발 서버 없이 실행됩니다.
 
+[최신 버전 다운로드](https://github.com/ai-campus-kr/shin-player/releases/latest) · [한국AI교육진흥원](https://github.com/ai-campus-kr) · [변경 기록](CHANGELOG.md)
+
 ## 실행 및 기본 앱 지정
 
 - GitHub 배포 ZIP의 압축을 모두 풀고 **Install.cmd**를 실행합니다. 관리자 권한과 별도 .NET 설치는 필요하지 않습니다. 첫 설치 시 인터넷으로 고정된 mpv 엔진을 내려받고 SHA256을 확인합니다.
