@@ -416,7 +416,7 @@ public partial class MainWindow : Window
     {
         var menu = new ContextMenu();
         AddMenu(menu, "영상 열기…", () => OpenDialog(), "Ctrl+O");
-        AddMenu(menu, "유튜브 링크 열기…", ShowLinkDialog, "Ctrl+U");
+        AddMenu(menu, "유튜브 주소창", FocusAddress, "Alt+D / Ctrl+U");
         AddMenu(menu, "내장 자막 AI 채팅…", ShowVideoChat, "Ctrl+J");
         AddMenu(menu, "최근 영상", ShowRecentMenu);
         AddMenu(menu, "화면 저장", () => Run(TakeScreenshotAsync), "Ctrl+S");
@@ -490,7 +490,7 @@ public partial class MainWindow : Window
     private void ShowHelp()
     {
         MessageBox.Show(this,
-            $"신플레이어 {typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}\n\nCtrl+U    유튜브 링크 열기\nCtrl+J    내장 자막 AI 채팅\nCtrl+Shift+S    자막별 일괄 캡처\n" +
+            $"신플레이어 {typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}\n\nAlt+D / Ctrl+U    유튜브 주소창 선택\nCtrl+J    내장 자막 AI 채팅\nCtrl+Shift+S    자막별 일괄 캡처\n" +
             "Space     재생 / 일시정지\n← / →     5초 이동 (Shift: 30초)\n↑ / ↓      음량 조절\n[ / ]        0.25배속 조절 (Shift: 0.05배)\nR / Backspace    1배속으로 복귀\nF / F11    전체화면 (Esc: 해제)\nM            음소거\nA             구간 반복 시작 → 끝 → 해제\n. / ,         다음 / 이전 프레임\nS             자막 표시 / 숨기기\nN / Shift+N    다음 / 이전 영상\nCtrl+O     영상 열기\nCtrl+L      재생목록\nCtrl+S      화면 저장\nCtrl+Q     완전히 종료\n\n" +
             "창을 닫으면 재생을 멈추고 트레이에서 대기합니다.\n트레이 아이콘을 더블클릭하면 다시 열립니다.\n\n" + (_player?.Version ?? "mpv") + " · .NET 8 / Windows x64\n신플레이어 소스: MIT · 한국AI교육진흥원\n외부 구성요소에는 별도 라이선스가 적용됩니다.\n소스와 라이선스는 설치 폴더에 포함되어 있습니다.",
             "신플레이어 · 단축키", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -522,7 +522,7 @@ public partial class MainWindow : Window
             case "frame-back": if (_loaded) Run(() => _player!.CommandAsync("frame-back-step")); break;
             case "start": Run(() => SeekAsync(0, false)); break;
             case "open": OpenDialog(); break;
-            case "open-link": ShowLinkDialog(); break;
+            case "open-link": FocusAddress(); break;
             case "chat": ShowVideoChat(); break;
             case "playlist": TogglePlaylist(); break;
             case "menu": ShowMoreMenu(); break;
@@ -536,9 +536,14 @@ public partial class MainWindow : Window
     }
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.OriginalSource is TextBox) return;
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
         bool ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control), shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+        if ((Keyboard.Modifiers == ModifierKeys.Alt && key == Key.D) || (Keyboard.Modifiers == ModifierKeys.Control && key == Key.U))
+        {
+            FocusAddress(); e.Handled = true; return;
+        }
+        // Leave text editing (including Space, arrows and Ctrl+A/C/V) to the address box.
+        if (AddressInput.IsKeyboardFocusWithin || e.OriginalSource is TextBox) return;
         if (QueueList.IsKeyboardFocusWithin && !ctrl && key is Key.Up or Key.Down or Key.Home or Key.End or Key.PageUp or Key.PageDown or Key.Enter or Key.Delete) return;
         string? action = ctrl ? key switch { Key.O => "open", Key.U => "open-link", Key.J => "chat", Key.L => "playlist", Key.Q => "quit", Key.S => shift ? "subtitle-capture" : "screenshot", _ => null } : key switch
         {

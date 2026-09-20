@@ -41,6 +41,8 @@ public partial class MainWindow
         TitleRow.Height = new GridLength(_fullScreen ? 0 : design.HeaderHeight);
         WindowChrome.GetWindowChrome(this).CaptionHeight = _fullScreen ? 0 : design.HeaderHeight;
         DesignButton.ToolTip = $"현재 UI: {design.Name} · 클릭해서 변경";
+        AddressBar.Margin = new Thickness(studio ? 12 : light ? 20 : 16, 0, studio ? 12 : light ? 20 : 16, studio ? 8 : 12);
+        AddressBar.CornerRadius = new CornerRadius(studio ? 4 : 18);
 
         StageLayout.Margin = minimal ? new Thickness(0) : studio ? new Thickness(12, 0, 12, 8) : light ? new Thickness(20, 0, 20, 12) : new Thickness(16, 0, 16, 10);
         StageFrame.CornerRadius = new CornerRadius(minimal || studio ? 0 : light ? 10 : 14);
@@ -99,8 +101,11 @@ public partial class MainWindow
     private void UpdateDesignEmptyLayout()
     {
         bool lime = CurrentDesign.Id == "lime";
+        bool compact = Stage.ActualHeight < 300;
         EmptyArtwork.Visibility = lime && Stage.ActualWidth >= 920 ? Visibility.Visible : Visibility.Collapsed;
-        EmptyTitle.FontSize = lime ? Stage.ActualHeight < 360 ? 32 : 43 : CurrentDesign.Id == "studio" ? 25 : 30;
+        EmptyTitle.FontSize = lime ? compact ? 28 : Stage.ActualHeight < 360 ? 32 : 43 : CurrentDesign.Id == "studio" ? 25 : 30;
         EmptyTitle.LineHeight = EmptyTitle.FontSize * 1.3;
+        DesignEyebrow.Margin = new Thickness(0, 0, 0, compact ? 8 : 17);
+        EmptyDescription.Margin = new Thickness(1, compact ? 8 : 13, 0, compact ? 12 : 23);
     }
 }

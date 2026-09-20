@@ -8,11 +8,11 @@
 
 一款 Windows 视频播放器，支持精细调速、音量增强，以及根据内嵌字幕批量截图。
 
-**0.6 测试版新功能：** YouTube 浏览器 · 使用自己的 API 密钥搜索字幕 · 自动跳到依据片段。
+**0.6 测试版新功能：** 常驻地址栏 · YouTube 旁的 AI 聊天面板 · 按请求跳到对应片段。
 
 **Windows 10/11 x64 · 免费 · 应用源码采用 MIT 许可证**
 
-**[下载 0.6 测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)**　·　[试用 6 秒演示视频](https://github.com/ai-campus-kr/shin-player/releases/download/v0.5.0/ShinPlayer-subtitle-demo.mp4)　·　[查看版本介绍](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)
+**0.6 测试版新功能：** 常驻地址栏 · YouTube 旁的 AI 聊天面板 · 按请求跳到对应片段。
 
 </div>
 
@@ -28,7 +28,7 @@
 
 ## 快速开始
 
-1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
+1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.2)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
 2. 运行 **`Install.cmd`**。无需管理员权限，也无需单独安装 .NET。
 3. 在开始菜单打开 **신플레이어**，将视频拖入窗口，或点击 **영상 열기**（打开视频）。
 
@@ -149,7 +149,7 @@
 | `Shift+[` / `Shift+]` | 以 0.05 倍为步长调速 |
 | `F` / `F11` | 全屏 |
 | `A` | 设置 A → 设置 B → 取消循环 |
-| `Ctrl+U` | 打开 YouTube 链接 |
+| `Alt+D` / `Ctrl+U` | 选中 YouTube 地址栏 |
 | `Ctrl+J` | 本地视频 AI 聊天 |
 | `Ctrl+S` | 将当前画面保存为 PNG |
 | `Ctrl+Shift+S` | 按内嵌字幕批量截图 |
@@ -181,27 +181,27 @@
 
 ## YouTube 与视频 AI 聊天 — 0.6 测试版
 
-**“找到绿色画面” → 找到支持答案的字幕后，跳到对应时间。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1)
+**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.2)
 
-1. 点击 **링크（链接）/ Ctrl+U** 并输入 YouTube 地址。应用内的 **Edge WebView2** 会打开正常的 YouTube 页面。
-2. 打开 YouTube 的 **更多 → 显示转录文稿**，然后选择应用工具栏的 **자막 · AI 채팅 → 자막 불러오기**（字幕·AI 聊天 → 加载字幕）。
-3. 在 **API 설정**（API 设置）保存自己的 OpenAI 密钥并提问。自动跳到第一个依据片段，也可点击时间按钮再次跳转。
+1. 在顶部常驻的 **地址栏** 输入 YouTube 地址，然后按 **Enter** 或 **→**。按 **Alt+D / Ctrl+U** 可选中地址。可以省略 `https://`，例如直接输入 `youtube.com`。应用内的 **Edge WebView2** 会打开正常的 YouTube 页面。
+2. 打开 YouTube 的 **更多 → 显示转录文稿**，然后点击视频旁 **聊天面板 → 자막 불러오기**（加载字幕）。宽窗口放在右侧，窄窗口放在下方。也可通过 **채팅 배치**（聊天布局）手动选择位置。
+3. 在 **API 설정**（API 设置）保存自己的 OpenAI 密钥并提问。普通问题不会改变播放位置。明确要求 **“跳到那里”** 或点击依据时间按钮才会跳转。
 
 本地视频使用 **AI / Ctrl+J → 자막 불러오기**，必要时选择语言。仅支持 **内嵌文本字幕**，不使用外部 SRT、图片字幕、OCR 或语音转写。
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.1/docs/screenshots/v0.6.0-beta.1/01-chat-ready.png" width="520" alt="实际的视频 AI 聊天窗口和 OpenAI API 密钥设置"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.2/docs/screenshots/v0.6.0-beta.2/02-youtube-chat.png" width="1000" alt="YouTube and docked AI chat"></p>
 
-<sub>使用合成字幕和测试密钥的实际 WPF 检查画面，并非真实 OpenAI 请求或生成回答的截图。</sub>
+<sub>使用真实 YouTube 视频与 GPT-5.4-mini API 验证的地址栏及聊天面板。</sub>
 
 - 模型为 **`gpt-5.4-mini`**。密钥按当前 Windows 用户加密，保存在 `%LOCALAPPDATA%\ShinPlayer\openai-key.dat`，可在应用内删除。
-- 提问时将 **问题、视频名称和选定字幕文本**发送给 OpenAI，不发送视频或音频文件。费用和额度适用自己的账户，每次显示输入/输出 Token 数。
+- 提问时将 **问题、上一轮问题和回答、视频名称和选定字幕文本**发送给 OpenAI，不发送视频或音频文件。费用和额度适用自己的账户，每次显示输入/输出 Token 数。
 - 长字幕先在本地筛选候选片段，包括每条字幕附加信息在内，控制在 60,000 字符预算中。会提示 **部分搜索**，可能遗漏上下文。
 - 没有依据、响应无效、取消、关闭窗口或更换视频后的响应不会改变播放位置。广告播放期间也不跳转。
 - 聊天字幕保存在内存中，不创建对话历史文件。网页登录和 Cookie 存储在 `%LOCALAPPDATA%\ShinPlayer\youtube-browser`，不导入 Chrome、Edge 或 Whale 的现有配置与扩展。
 
-缺少 WebView2 Runtime 时会提供 Microsoft 官方安装说明。YouTube 的登录、地区及视频限制仍然适用。**브라우저에서 열기**可打开默认浏览器，但 AI 跳转不连接该外部窗口。网页视频使用 YouTube 自身控件，本地 mpv 的倍速、音量增强和批量截图设置不适用。不使用视频流提取或下载工具。
+缺少 WebView2 Runtime 时会提供 Microsoft 官方安装说明。YouTube 的登录、地区及视频限制仍然适用。**외부 열기**可打开默认浏览器，但 AI 跳转不连接该外部窗口。网页视频使用 YouTube 自身控件，本地 mpv 的倍速、音量增强和批量截图设置不适用。不使用视频流提取或下载工具。
 
-**测试版验证范围：** API 使用模拟响应，网页字幕读取和时间跳转使用 WebView2 合成页面验证。未调用真实付费 OpenAI API。验证时 YouTube 的转录面板为空，因此尚未完成真实网站字幕功能的端到端验证。字幕可用性和网站结构变化可能导致功能不可用。
+**测试版验证范围：** 已通过 74 项集成检查和真实 `gpt-5.4-mini` API 检查。从真实 YouTube 视频读取了 301 条韩语字幕：普通问题保持播放位置，“跳到刚才解释的部分”则跳到 10:45，无需再次调用 API。字幕可用性、广告、登录要求和网站变化可能影响其他视频。
 
 音量增强和本地字幕截图仍然 **在 PC 上处理，无需 API 密钥或 Token 费用**。
 
@@ -209,7 +209,7 @@
 
 使用 C# / .NET 8 WPF 和 mpv 构建的 Windows 原生应用，本地播放使用 mpv，可选 YouTube 功能使用 Edge WebView2，无需开发服务器。
 
-0.6 测试版使用 WPF/libmpv 和隔离 WebView2 的 **71 项集成检查**验证。API 使用模拟响应，真实服务验证范围见上文。[更新日志](CHANGELOG.md)
+0.6 测试版使用 WPF/libmpv 和隔离 WebView2 的 **74 项集成检查**验证。API 使用模拟响应，真实服务验证范围见上文。[更新日志](CHANGELOG.md)
 
 <details>
 <summary><strong>从源码构建与安装</strong></summary>
@@ -255,7 +255,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 截图检查使用独立的合成 MP4/MKV，验证内嵌轨道选择、字幕中间时刻的实际帧颜色、PNG 中的韩语文字、不含字幕选项、重复保存、取消后的部分结果保留、工作进程终止、播放位置保持以及截图窗口。检查图片仅保存到 `artifacts` 下。
 
-共运行 71 项集成检查。定位检查覆盖两种窗口大小和播放列表状态下的 28 个位置，以及布局刷新前的重复输入、释放位置、鼠标捕获丢失、文件切换和全屏。也检查 1–2 倍 WPF 布局变换，但未自动化物理鼠标输入或实际显示器 DPI 变更。界面检查渲染四种风格的启动画面、最小窗口、播放列表和截图窗口，检查按钮重叠及字幕选择显示。还检查设置序列化、旧设置兼容性、选择按钮，以及播放时切换风格对位置和速度的保持。
+共运行 74 项集成检查。定位检查覆盖两种窗口大小和播放列表状态下的 28 个位置，以及布局刷新前的重复输入、释放位置、鼠标捕获丢失、文件切换和全屏。也检查 1–2 倍 WPF 布局变换，但未自动化物理鼠标输入或实际显示器 DPI 变更。界面检查渲染四种风格的启动画面、最小窗口、播放列表和截图窗口，检查按钮重叠及字幕选择显示。还检查设置序列化、旧设置兼容性、选择按钮，以及播放时切换风格对位置和速度的保持。
 
 音量增强检查在静音状态下播放合成 PCM 音频，并测量 mpv 滤镜输出的峰值／RMS。验证各档实际增益、最高档限幅、关闭后恢复原始幅度、初始设置恢复、快速连续调整以及其他滤镜的保留。
 
@@ -285,4 +285,4 @@ Shin Player 自身源码采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 한
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.1) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.2) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)

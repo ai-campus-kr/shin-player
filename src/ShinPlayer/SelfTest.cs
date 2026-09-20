@@ -426,6 +426,13 @@ public partial class MainWindow
     private void VerifyButtonLayout()
     {
         UpdateLayout();
+        if (!AddressBar.IsVisible || AddressInput.ActualWidth < 200 || AddressInput.ActualHeight < 28)
+            throw new Exception("Persistent address bar is hidden or clipped");
+        var addressBounds = AddressBar.TransformToAncestor(Root).TransformBounds(new Rect(AddressBar.RenderSize));
+        var stageBounds = StageLayout.TransformToAncestor(Root).TransformBounds(new Rect(StageLayout.RenderSize));
+        if (addressBounds.Bottom > stageBounds.Top + 1) throw new Exception("Address bar overlaps the video stage");
+        if (EmptyState.IsVisible && !new Rect(Stage.RenderSize).Contains(EmptyActions.TransformToAncestor(Stage).TransformBounds(new Rect(EmptyActions.RenderSize))))
+            throw new Exception("Empty-state buttons are clipped by the video stage");
         var bounds = VisualChildren<Button>(Root).Where(x => x.IsVisible)
             .Select(x => (Button: x, Rect: x.TransformToAncestor(Root).TransformBounds(new Rect(x.RenderSize))))
             .ToArray();

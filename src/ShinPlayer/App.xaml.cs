@@ -32,7 +32,7 @@ public partial class App : Application
     {
         base.OnStartup(e);
         DispatcherUnhandledException += (_, evt) => { Log(evt.Exception.ToString()); MessageBox.Show(evt.Exception.Message, "신플레이어", MessageBoxButton.OK, MessageBoxImage.Error); evt.Handled = true; };
-        IsTest = e.Args.Contains("--self-test");
+        IsTest = e.Args.Contains("--self-test") || e.Args.Contains("--live-youtube-test");
         IsDiagnosticSession = e.Args.Contains("--diagnostic-session");
         // A saved boost value in the isolated runner also exercises engine startup restoration.
         Settings = IsTest || IsDiagnosticSession ? new PlayerSettings { Resume = false, Muted = true, AudioBoostDb = IsTest ? 6 : 0 } : PlayerSettings.Load();
@@ -50,8 +50,17 @@ public partial class App : Application
         ShowPlayer();
         if (IsTest)
         {
-            int i = Array.IndexOf(e.Args, "--self-test");
-            await _window!.RunSelfTestAsync(e.Args[i + 1], e.Args[i + 2]);
+            if (e.Args.Contains("--live-youtube-test"))
+            {
+                _window!.Left = -16000; _window.ShowInTaskbar = false;
+                int i = Array.IndexOf(e.Args, "--live-youtube-test");
+                Environment.ExitCode = await YouTubeWindow.RunLiveTestAsync(_window!, e.Args[i + 1], e.Args[i + 2], e.Args[i + 3], e.Args.Contains("--capture-only"));
+            }
+            else
+            {
+                int i = Array.IndexOf(e.Args, "--self-test");
+                await _window!.RunSelfTestAsync(e.Args[i + 1], e.Args[i + 2]);
+            }
             Quit();
         }
         else await HandleArgs(e.Args);

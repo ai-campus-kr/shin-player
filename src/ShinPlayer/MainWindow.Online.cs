@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace ShinPlayer;
 
@@ -11,29 +12,48 @@ public partial class MainWindow
 {
     private YouTubeWindow? _youtubeWindow;
     private VideoChatWindow? _videoChat;
-    private void Link_Click(object sender, RoutedEventArgs e) => ShowLinkDialog();
+    private string _lastYouTubeAddress = "";
     private void Chat_Click(object sender, RoutedEventArgs e) => ShowVideoChat();
-    private void ShowLinkDialog()
+    private void FocusAddress()
     {
-        var input = new TextBox { Padding = new(10), MinWidth = 370, Margin = new(0, 14, 0, 14) };
-        var message = new TextBlock { Text = "유튜브 링크를 넣으면 앱 안의 브라우저에서 재생합니다.", TextWrapping = TextWrapping.Wrap };
-        var open = new Button { Content = "유튜브 열기", IsDefault = true, Style = (Style)FindResource("Primary") };
-        var panel = new StackPanel { Margin = new(24) };
-        panel.Children.Add(new TextBlock { Text = "유튜브 링크 열기", FontSize = 22, FontWeight = FontWeights.SemiBold });
-        panel.Children.Add(input); panel.Children.Add(message); panel.Children.Add(open);
-        var dialog = new Window { Title = "링크 열기 · 신플레이어", Style = (Style)FindResource(typeof(Window)), Owner = this, Width = 520, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize, Content = panel, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-        open.Margin = new(0, 16, 0, 0);
-        open.Click += (_, _) =>
+        AddressInput.Focus();
+        AddressInput.SelectAll();
+    }
+    private void Address_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) => AddressInput.SelectAll();
+    private void Address_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (AddressInput.IsKeyboardFocusWithin) return;
+        e.Handled = true;
+        FocusAddress();
+    }
+    private void AddressGo_Click(object sender, RoutedEventArgs e) => NavigateAddress();
+    private void Address_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
         {
-            if (!YouTubePage.TryNormalize(input.Text, out var url)) { message.Text = "올바른 유튜브 영상 링크를 입력하세요."; return; }
-            dialog.Close(); Run(() => OpenYouTubeAsync(url));
-        };
-        dialog.Loaded += (_, _) => input.Focus();
-        dialog.ShowDialog();
+            e.Handled = true;
+            if (!e.IsRepeat) NavigateAddress();
+        }
+        else if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            AddressInput.Text = _lastYouTubeAddress;
+            PlayButton.Focus();
+        }
+    }
+    private void NavigateAddress()
+    {
+        if (!YouTubePage.TryNormalizeAddress(AddressInput.Text, out var url))
+        {
+            StatusText.Text = "유튜브 주소를 확인하세요. youtube.com 또는 유튜브 영상 주소를 입력할 수 있습니다.";
+            FocusAddress();
+            return;
+        }
+        Run(() => OpenYouTubeAsync(url));
     }
     private async Task OpenYouTubeAsync(string url)
     {
-        if (_closed || !YouTubePage.TryNormalize(url, out var normalized)) return;
+        if (_closed || !YouTubePage.TryNormalizeAddress(url, out var normalized)) return;
         int generation = _openGeneration;
         await _operations.WaitAsync();
         try
@@ -41,6 +61,7 @@ public partial class MainWindow
             if (_closed || generation != _openGeneration) return;
             if (_player != null) await _player.SetAsync("pause", true);
             if (_closed || generation != _openGeneration) return;
+            AddressInput.Text = _lastYouTubeAddress = normalized;
             _videoChat?.Close();
             if (_youtubeWindow == null)
             {
@@ -55,7 +76,7 @@ public partial class MainWindow
     private void ShowVideoChat()
     {
         if (_videoChat != null) { _videoChat.Activate(); return; }
-        if (!_loaded || _currentPath == null) { StatusText.Text = "로컬 영상을 먼저 열거나, 유튜브 창의 ‘자막 · AI 채팅’을 사용하세요."; return; }
+        if (!_loaded || _currentPath == null) { StatusText.Text = "로컬 영상을 먼저 열거나, 유튜브 창의 채팅 패널을 사용하세요."; return; }
         var path = _currentPath;
         var generation = _openGeneration;
         _videoChat = new VideoChatWindow(async cancel =>

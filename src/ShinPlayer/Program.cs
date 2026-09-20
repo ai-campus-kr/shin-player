@@ -22,10 +22,22 @@ public static class Program
         if (args.Contains("--register")) { WindowsIntegration.Register(); return 0; }
         if (args.Contains("--unregister")) { WindowsIntegration.Unregister(); return 0; }
         if (args.Contains("--enable-startup")) { WindowsIntegration.SetStartup(true); return 0; }
+        if (args.Contains("--live-chat-test"))
+        {
+            int index = Array.IndexOf(args, "--live-chat-test");
+            if (args.Length <= index + 2) return 2;
+            return LiveChatTest.RunAsync(args[index + 1], args[index + 2]).GetAwaiter().GetResult();
+        }
         if (args.Contains("--self-test"))
         {
             int index = Array.IndexOf(args, "--self-test");
             if (args.Length <= index + 2) { Console.Error.WriteLine("Usage: --self-test <fixture-directory> <report-directory>"); return 2; }
+            return RunUi();
+        }
+        if (args.Contains("--live-youtube-test"))
+        {
+            int index = Array.IndexOf(args, "--live-youtube-test");
+            if (args.Length <= index + 3) return 2;
             return RunUi();
         }
         PipeName = "ShinPlayer-" + (WindowsIdentity.GetCurrent().User?.Value ?? Environment.UserName);

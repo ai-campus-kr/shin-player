@@ -3,7 +3,7 @@
   <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="64" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False" /></shell:WindowChrome.WindowChrome>
   <Border BorderBrush="{DynamicResource Line}" BorderThickness="1" Background="{DynamicResource Bg}">
     <Grid x:Name="Root">
-      <Grid.RowDefinitions><RowDefinition x:Name="TitleRow" Height="64" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="27" /></Grid.RowDefinitions>
+      <Grid.RowDefinitions><RowDefinition x:Name="TitleRow" Height="64" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="27" /></Grid.RowDefinitions>
       <Grid x:Name="TitleBar" Margin="22,0,10,0">
         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" Margin="0,0,25,0">
@@ -12,7 +12,6 @@
         </StackPanel>
         <TextBlock x:Name="TitleFile" Grid.Column="1" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" FontSize="12" Margin="0,0,15,0" />
         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" shell:WindowChrome.IsHitTestVisibleInChrome="True">
-          <Button x:Name="LinkButton" Content="링크" Click="Link_Click" ToolTip="유튜브 링크 열기 · Ctrl+U" Padding="9,8" />
           <Button x:Name="ChatButton" Content="AI" Click="Chat_Click" ToolTip="내장 자막으로 AI 구간 검색 · Ctrl+J" Padding="9,8" />
           <Button x:Name="DesignButton" Content="UI 선택" Click="Design_Click" ToolTip="미니멀 · 스튜디오 · 라이트 · 라임" Margin="0,0,4,0" />
           <Button Content="자막 캡처" Click="Capture_Click" Foreground="{DynamicResource Muted}" ToolTip="자막별 일괄 캡처 · Ctrl+Shift+S" Margin="0,0,4,0" />
@@ -24,7 +23,20 @@
           <Button Style="{StaticResource Glyph}" Content="&#xE8BB;" Click="Close_Click" ToolTip="닫고 트레이에서 대기" />
         </StackPanel>
       </Grid>
-      <Grid x:Name="StageLayout" Grid.Row="1" Margin="16,0,16,10">
+      <Border x:Name="AddressBar" Grid.Row="1" Margin="16,0,16,12" Background="{DynamicResource Raised}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="18" Padding="12,0,4,0">
+        <Grid Height="38">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <TextBlock Text="&#xE774;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15" Foreground="{DynamicResource Muted}" Margin="0,0,10,0" />
+          <Grid Grid.Column="1">
+            <TextBox x:Name="AddressInput" BorderThickness="0" Background="Transparent" Padding="0,8" VerticalContentAlignment="Center" FontSize="13" KeyDown="Address_KeyDown" GotKeyboardFocus="Address_GotKeyboardFocus" PreviewMouseLeftButtonDown="Address_MouseDown" ToolTip="유튜브 주소 입력 · Enter로 이동 · Alt+D / Ctrl+U" AutomationProperties.Name="유튜브 주소" />
+            <TextBlock Text="유튜브 주소를 입력하세요" Foreground="{DynamicResource Muted}" FontSize="13" IsHitTestVisible="False">
+              <TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=AddressInput}" Value=""><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+            </TextBlock>
+          </Grid>
+          <Button x:Name="AddressGoButton" Grid.Column="2" Style="{StaticResource Glyph}" Content="&#xE72A;" Width="32" Height="30" Margin="6,0,0,0" Click="AddressGo_Click" ToolTip="이 주소로 이동 · Enter" AutomationProperties.Name="주소로 이동" />
+        </Grid>
+      </Border>
+      <Grid x:Name="StageLayout" Grid.Row="2" Margin="16,0,16,10">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <Border x:Name="StageFrame" BorderBrush="{DynamicResource Line}" BorderThickness="1" Background="{DynamicResource StageBrush}" CornerRadius="14">
           <Grid x:Name="Stage" ClipToBounds="True" Margin="1">
@@ -58,7 +70,7 @@
           </Grid>
         </Border>
       </Grid>
-      <Border x:Name="ControlPanel" Grid.Row="2" Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="16" Margin="16,0,16,0" Padding="20,10,20,9">
+      <Border x:Name="ControlPanel" Grid.Row="3" Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="16" Margin="16,0,16,0" Padding="20,10,20,9">
         <Grid x:Name="ControlsGrid"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <Grid x:Name="SeekDeck"><Grid.RowDefinitions><RowDefinition x:Name="TimeRow" Height="18" /><RowDefinition Height="28" /></Grid.RowDefinitions>
           <Grid><StackPanel Orientation="Horizontal"><TextBlock x:Name="PositionText" Text="00:00" FontFamily="Consolas" FontSize="12" Foreground="{DynamicResource Accent}" /><TextBlock Text=" / " FontFamily="Consolas" Foreground="{DynamicResource Muted}" Margin="4,0" /><TextBlock x:Name="DurationText" Text="00:00" FontFamily="Consolas" FontSize="12" Foreground="{DynamicResource Muted}" /></StackPanel><TextBlock x:Name="SeekHint" Text="클릭해서 이동 · 드래그로 탐색" FontSize="10" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" /></Grid>
@@ -76,7 +88,7 @@
           </Grid>
         </Grid>
       </Border>
-      <Grid Grid.Row="3" Margin="28,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock x:Name="StatusText" Text="준비됨 · Ctrl+O로 영상 열기" FontSize="10" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" /><TextBlock x:Name="EngineText" Grid.Column="1" Text="음높이 유지" FontSize="10" Foreground="{DynamicResource Muted}" Margin="16,0,0,0" /></Grid>
+      <Grid Grid.Row="4" Margin="28,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock x:Name="StatusText" Text="준비됨 · Ctrl+O로 영상 열기" FontSize="10" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" /><TextBlock x:Name="EngineText" Grid.Column="1" Text="음높이 유지" FontSize="10" Foreground="{DynamicResource Muted}" Margin="16,0,0,0" /></Grid>
     </Grid>
   </Border>
 </Window>

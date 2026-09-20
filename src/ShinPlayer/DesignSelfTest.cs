@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -14,6 +15,53 @@ public partial class MainWindow
 {
     private async Task RunDesignTestsAsync(Func<string, Func<Task<object?>>, Task> test, string fixtures, string output)
     {
+        await test("address-bar-typing-submit-and-escape", async () =>
+        {
+            await OpenFilesAsync(new[] { Path.Combine(fixtures, "한글 영상 sample.mp4") });
+            await _player!.SetAsync("pause", true);
+            await WaitUntilAsync(() => _player.Flag("pause"), TimeSpan.FromSeconds(3));
+            Activate(); UpdateLayout();
+            AddressInput.Text = "youtu.be/" + OnlineSelfTest.TestId;
+            HandleAction("open-link");
+            if (!AddressInput.IsKeyboardFocusWithin || AddressInput.SelectedText != AddressInput.Text)
+                throw new Exception("Address shortcut did not focus and select the URL");
+            long requests = _player.SeekRequestCount;
+            foreach (var key in new[] { Key.Space, Key.Left, Key.Right, Key.Up, Key.Down, Key.Home, Key.End, Key.Back, Key.F, Key.M, Key.A, Key.S, Key.N, Key.OemPeriod })
+            {
+                var args = KeyArgs(key, PreviewKeyDownEvent);
+                Window_KeyDown(this, args);
+                if (args.Handled) throw new Exception("Player intercepted address editing: " + key);
+            }
+            if (_player.SeekRequestCount != requests || !_player.Flag("pause") || _fullScreen)
+                throw new Exception("Address editing changed playback");
+            AddressInput.Text = "https://youtube.com.example.org/watch?v=" + OnlineSelfTest.TestId;
+            AddressGoButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            if (_youtubeWindow != null || !AddressInput.IsKeyboardFocusWithin)
+                throw new Exception("Invalid address opened a browser or lost focus");
+            try
+            {
+                AddressInput.Text = " youtube.com ";
+                AddressInput.RaiseEvent(KeyArgs(Key.Enter, KeyDownEvent));
+                await WaitUntilAsync(() => _youtubeWindow != null, TimeSpan.FromSeconds(3));
+                await _youtubeWindow!.Initialization;
+                if (AddressInput.Text != "https://youtube.com/") throw new Exception("Enter did not normalize the address");
+                _youtubeWindow.Close();
+                Activate(); FocusAddress();
+                AddressInput.Text = "unfinished edit";
+                AddressInput.RaiseEvent(KeyArgs(Key.Escape, KeyDownEvent));
+                if (AddressInput.Text != "https://youtube.com/" || AddressInput.IsKeyboardFocusWithin)
+                    throw new Exception("Escape did not restore the address and return focus");
+            }
+            finally
+            {
+                _youtubeWindow?.Close();
+                AddressInput.Text = _lastYouTubeAddress = "";
+                PlayButton.Focus();
+            }
+            return new { keyboardEditingPreserved = true, enterOpens = true, invalidAddressRejected = true, escapeRestores = true, liveNetworkUsed = false };
+
+            KeyEventArgs KeyArgs(Key key, RoutedEvent routedEvent) => new(Keyboard.PrimaryDevice, PresentationSource.FromVisual(this), Environment.TickCount, key) { RoutedEvent = routedEvent };
+        });
         await test("ui-design-settings-roundtrip-and-migration", async () =>
         {
             foreach (var design in UiDesigns.All)
@@ -77,6 +125,7 @@ public partial class MainWindow
                 }
                 ToggleFullscreen(); ApplyUiDesign(design.Id); UpdateLayout();
                 if (TitleRow.ActualHeight != 0) throw new Exception("Theme restored the hidden fullscreen title bar");
+                if (!AddressBar.IsVisible || AddressInput.ActualWidth < 200) throw new Exception("Fullscreen lost the persistent address bar");
                 ToggleFullscreen(); UpdateLayout(); VerifyButtonLayout();
                 if (Math.Abs(TitleRow.ActualHeight - design.HeaderHeight) > 1) throw new Exception("Fullscreen restored the wrong title height");
             }

@@ -12,6 +12,16 @@ internal static class YouTubePage
     internal static bool IsYouTube(Uri uri) => uri.Scheme == "https" && string.IsNullOrEmpty(uri.UserInfo) && uri.IsDefaultPort &&
         uri.Host is "youtube.com" or "www.youtube.com" or "m.youtube.com" or "youtu.be";
 
+    internal static bool TryNormalizeAddress(string input, out string url)
+    {
+        input = input.Trim();
+        if (!input.Contains("://", StringComparison.Ordinal)) input = "https://" + input;
+        url = "";
+        if (!Uri.TryCreate(input, UriKind.Absolute, out var uri) || !IsYouTube(uri)) return false;
+        url = uri.AbsoluteUri;
+        return true;
+    }
+
     internal static string VideoId(string value)
     {
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || !IsYouTube(uri)) return "";

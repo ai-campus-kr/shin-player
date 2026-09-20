@@ -11,3 +11,6 @@ dist/
 검증결과.md
 *.user
 *.suo
+.env
+.env.*
+!.env.example

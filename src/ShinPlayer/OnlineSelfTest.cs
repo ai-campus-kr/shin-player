@@ -26,12 +26,12 @@ internal static class OnlineSelfTest
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => run(request, cancellationToken);
     }
-    internal static HttpResponseMessage Reply(int[] ids, string answer = "초록 장면을 찾았습니다.") => new(HttpStatusCode.OK)
+    internal static HttpResponseMessage Reply(int[] ids, string answer = "초록 장면을 찾았습니다.", bool seek = true) => new(HttpStatusCode.OK)
     {
         Content = new StringContent(JsonSerializer.Serialize(new
         {
             status = "completed",
-            output = new[] { new { content = new[] { new { type = "output_text", text = JsonSerializer.Serialize(new { answer, cue_ids = ids }) } } } },
+            output = new[] { new { content = new[] { new { type = "output_text", text = JsonSerializer.Serialize(new { answer, cue_ids = ids, seek_requested = seek }) } } } },
             usage = new { input_tokens = 150, output_tokens = 30 }
         }))
     };
@@ -43,6 +43,15 @@ internal static class OnlineSelfTest
     }
     internal static async Task RunAsync(Func<string, Func<Task<object?>>, Task> test, string fixtures, string output, Window owner)
     {
+        await test("youtube-address-bar-pages-and-host-validation", () =>
+        {
+            foreach (var input in new[] { "youtube.com", " www.youtube.com ", "m.youtube.com/results?search_query=music", "youtu.be/" + TestId + "?t=5", "https://www.youtube.com/playlist?list=PLtest" })
+                Require(YouTubePage.TryNormalizeAddress(input, out var url) && YouTubePage.IsYouTube(new Uri(url)), "Valid browser address rejected");
+            foreach (var input in new[] { "", "just a search", "http://youtube.com", "https://youtube.com:444/", "https://user@youtube.com/", "https://youtube.com.example.org/", "javascript:alert(1)", "file:///C:/video.mp4", "https://example.com/" })
+                Require(!YouTubePage.TryNormalizeAddress(input, out _), "Invalid browser address accepted");
+            Require(YouTubePage.TryNormalizeAddress("youtube.com/watch?v=" + TestId + "&list=PLtest&t=5", out var preserved) && preserved.EndsWith("&list=PLtest&t=5"), "Browser address lost query parameters");
+            return Task.FromResult<object?>(new { pagesAccepted = 5, rejected = 9, queryPreserved = true });
+        });
         await test("youtube-links-normalize-and-reject-spoofed-hosts", () =>
         {
             foreach (var link in new[] { $"https://www.youtube.com/watch?v={TestId}&list=abc", $"https://youtu.be/{TestId}?si=tracking", $"https://m.youtube.com/shorts/{TestId}", $"https://youtube.com/live/{TestId}", $"youtu.be/{TestId}" })
@@ -148,7 +157,9 @@ internal static class OnlineSelfTest
             return new { embeddedCues = transcript.Cues.Count, subtitleDelay = .3, externalIgnored = true };
         });
         await test("chat-window-answer-seek-no-match-cancel-and-close", async () =>
-            await VideoChatWindow.TestFlowAsync(owner, output));
+            await VideoChatPanel.TestFlowAsync(owner, output));
+        await test("youtube-docked-chat-responsive-layout", async () =>
+            await YouTubeWindow.TestLayoutAsync(owner, output));
         await test("webview2-runtime-transcript-and-seek-offline-fixture", async () =>
             await TestBrowserAsync(fixtures, output, owner));
     }
@@ -210,7 +221,7 @@ internal static class OnlineSelfTest
     }
 }
 
-internal sealed partial class VideoChatWindow
+internal sealed partial class VideoChatPanel
 {
     internal static async Task<object> TestFlowAsync(Window owner, string output)
     {
@@ -221,32 +232,91 @@ internal sealed partial class VideoChatWindow
         using var http = new HttpClient(new OnlineSelfTest.Handler((_, _) =>
         {
             calls++;
-            return calls < 3 ? Task.FromResult(OnlineSelfTest.Reply(calls == 1 ? new[] { 1 } : Array.Empty<int>())) : pending.Task;
+            return calls < 3 ? Task.FromResult(OnlineSelfTest.Reply(calls == 1 ? new[] { 1 } : Array.Empty<int>(), seek: false)) : pending.Task;
         }));
-        var window = new VideoChatWindow(_ => Task.FromResult(OnlineSelfTest.Transcript), (_, time) =>
+        var panel = new VideoChatPanel(_ => Task.FromResult(OnlineSelfTest.Transcript), (_, time) =>
         {
             if (time != 2.2) throw new Exception("Wrong seek position");
             seeks++; return Task.CompletedTask;
-        }, new VideoChatClient(http), keys) { Owner = owner, ShowActivated = false };
+        }, new VideoChatClient(http), keys);
+        var window = new Window { Owner = owner, ShowActivated = false, Style = (Style)owner.FindResource(typeof(Window)), Width = 600, Height = 760, Content = panel };
+        window.Closed += (_, _) => panel.Close();
         try
         {
-            window.Show(); await window.LoadAsync();
-            if (!window._send.IsEnabled) throw new Exception("Chat not ready");
-            window._apiSettings.IsExpanded = true;
+            window.Show(); await panel.LoadAsync();
+            if (!panel._send.IsEnabled) throw new Exception("Chat not ready");
+            panel._apiSettings.IsExpanded = true;
             OnlineSelfTest.Capture(window, Path.Combine(output, "chat-ready.png"));
-            window._question.Text = "초록 장면 찾아줘"; await window.AskAsync();
-            if (seeks != 1 || window._messages.Children.Count < 4) throw new Exception("Answer did not seek");
-            window._question.Text = "없는 내용"; await window.AskAsync();
+            panel._question.Text = "초록 장면 설명해줘"; await panel.AskAsync();
+            if (seeks != 0 || panel._messages.Children.Count < 4) throw new Exception("Ordinary answer moved playback or lost evidence");
+            panel._question.Text = "그 부분으로 이동해줘"; await panel.AskAsync();
+            if (seeks != 1 || panel._messages.Children.Count < 4) throw new Exception("Answer did not seek");
+            if (calls != 1) throw new Exception("Direct follow-up unnecessarily called the API");
+            panel._question.Text = "없는 내용"; await panel.AskAsync();
             if (seeks != 1) throw new Exception("No-match answer sought");
-            window._question.Text = "취소할 질문"; var asking = window.AskAsync();
-            window._work.Cancel(); pending.TrySetResult(OnlineSelfTest.Reply(new[] { 1 })); await asking;
-            if (seeks != 1 || window._busy) throw new Exception("Cancelled answer sought");
+            panel._question.Text = "취소할 질문"; var asking = panel.AskAsync();
+            panel._work.Cancel(); pending.TrySetResult(OnlineSelfTest.Reply(new[] { 1 })); await asking;
+            if (seeks != 1 || panel._busy) throw new Exception("Cancelled answer sought");
             pending = new TaskCompletionSource<HttpResponseMessage>();
-            window._question.Text = "닫은 후 도착하는 답변"; asking = window.AskAsync(); window.Close();
+            panel._question.Text = "다른 영상으로 바꾸기 전 질문"; asking = panel.AskAsync();
+            panel.ResetTranscript("새 영상");
+            pending.TrySetResult(OnlineSelfTest.Reply(new[] { 1 })); await asking;
+            if (seeks != 1 || panel._send.IsEnabled || panel._status.Text != "새 영상" || panel._messages.Children.Count != 0)
+                throw new Exception("Old response changed the new video's chat");
+            await panel.LoadAsync();
+            pending = new TaskCompletionSource<HttpResponseMessage>();
+            panel._question.Text = "닫은 후 도착하는 답변"; asking = panel.AskAsync(); window.Close();
             pending.TrySetResult(OnlineSelfTest.Reply(new[] { 1 })); await asking;
             if (seeks != 1) throw new Exception("Closed chat answer sought");
-            return new { automaticSeeks = seeks, noMatchKeptPosition = true, cancelledAndClosedResponsesIgnored = true, liveApiCalled = false };
+            return new { explicitSeeks = seeks, ordinaryAnswerKeptPosition = true, noMatchKeptPosition = true, changedVideoResponseIgnored = true, cancelledAndClosedResponsesIgnored = true, liveApiCalled = false };
         }
-        finally { if (!window._closed) window.Close(); keys.Delete(); }
+        finally { if (!panel._closed) window.Close(); keys.Delete(); }
+    }
+}
+
+internal sealed partial class YouTubeWindow
+{
+    internal static async Task<object> TestLayoutAsync(Window owner, string output)
+    {
+        var window = new YouTubeWindow("https://www.youtube.com/watch?v=" + OnlineSelfTest.TestId) { Owner = owner, ShowActivated = false };
+        try
+        {
+            window.Show(); await window.Initialization;
+            window.UpdateLayout();
+            if (Math.Abs(window._browser.ActualWidth - window._browserFrame.ActualWidth) > 1 || Math.Abs(window._browser.ActualHeight - window._browserFrame.ActualHeight) > 1)
+                throw new Exception("WebView2 does not fill its browser frame");
+            // WebView2 owns a native surface; this screenshot labels the synthetic layout preview explicitly.
+            window._browserFrame.Content = new System.Windows.Controls.TextBlock { Text = "YouTube 브라우저 영역\n레이아웃 검증 화면 · 실제 재생 화면 아님", TextAlignment = TextAlignment.Center, FontSize = 22, VerticalAlignment = VerticalAlignment.Center };
+            foreach (var (width, height, placement, bottom) in new[] { (1280d, 820d, "auto", false), (840d, 620d, "auto", true), (1280d, 820d, "bottom", true), (840d, 620d, "right", false) })
+            {
+                window.Width = width; window.Height = height; window._chatPlacement = placement;
+                window.UpdateLayout(); window.UpdateChatLayout(); window.UpdateLayout(); await Task.Delay(60);
+                var chat = window._chatFrame.TransformToAncestor(window._workspace).TransformBounds(new Rect(window._chatFrame.RenderSize));
+                var browser = window._browserFrame.TransformToAncestor(window._workspace).TransformBounds(new Rect(window._browserFrame.RenderSize));
+                if (!window._chat.IsVisible || chat.Width < 330 || chat.Height < 240 || browser.Width < 400 || browser.Height < 180)
+                    throw new Exception("Docked chat or browser is clipped");
+                var intersection = Rect.Intersect(chat, browser);
+                if (!intersection.IsEmpty && intersection.Width > 1 && intersection.Height > 1) throw new Exception("Chat covers the browser");
+                if (System.Windows.Controls.Grid.GetRow(window._chatFrame) != (bottom ? 1 : 0)) throw new Exception("Wrong chat placement");
+                window._chat.VerifyLayout();
+                OnlineSelfTest.Capture(window, Path.Combine(output, $"youtube-chat-{width:0}-{placement}.png"));
+            }
+            return new { layouts = 4, embeddedPanel = true, overlaps = false, realYouTube = false };
+        }
+        finally { window.Close(); }
+    }
+}
+
+internal sealed partial class VideoChatPanel
+{
+    internal void VerifyLayout()
+    {
+        UpdateLayout();
+        var viewport = new Rect(-1, -1, ActualWidth + 2, ActualHeight + 2);
+        foreach (FrameworkElement control in new FrameworkElement[] { _question, _send, _scroll })
+        {
+            var bounds = control.TransformToAncestor(this).TransformBounds(new Rect(control.RenderSize));
+            if (!viewport.Contains(bounds) || bounds.Width < 150 || bounds.Height < 20) throw new Exception("Chat controls are clipped");
+        }
     }
 }
