@@ -5,6 +5,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -127,6 +129,19 @@ public partial class MainWindow
             var window = _captureWindow!;
             await window.Initialization;
             if (window.Background is not SolidColorBrush brush || brush.Color.R > 100) throw new Exception("Capture window lost dark theme");
+            window.UpdateLayout();
+            var selector = VisualChildren<ComboBox>(window).Single();
+            var selected = (SubtitleTrack)selector.SelectedItem;
+            if (!VisualChildren<TextBlock>(selector).Any(x => x.Text == selected.Label)) throw new Exception("Subtitle selector displays internal data instead of its language label");
+            selector.IsDropDownOpen = true;
+            await Task.Delay(80);
+            var popup = (Popup)selector.Template.FindName("PART_Popup", selector);
+            if (popup.Child == null || VisualChildren<ComboBoxItem>(popup.Child).Count() != 2) throw new Exception("Subtitle choices did not render");
+            selector.SelectedIndex = 1;
+            selector.IsDropDownOpen = false;
+            window.UpdateLayout();
+            if (!VisualChildren<TextBlock>(selector).Any(x => x.Text == ((SubtitleTrack)selector.SelectedItem).Label)) throw new Exception("Subtitle selection did not update its displayed label");
+            selector.SelectedItem = selected;
             window.UpdateLayout();
             var bitmap = new RenderTargetBitmap((int)window.ActualWidth, (int)window.ActualHeight, 96, 96, PixelFormats.Pbgra32);
             bitmap.Render(window);

@@ -53,11 +53,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        // Slider's move-to-point class handler consumes the preview event.
+        // Own the complete gesture instead of combining Slider/Thumb defaults
+        // with a second coordinate conversion during mouse capture.
+        SeekBar.IsMoveToPointEnabled = false;
         SeekBar.AddHandler(PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(Seek_Down), true);
         SeekBar.AddHandler(PreviewMouseLeftButtonUpEvent, new MouseButtonEventHandler(Seek_Up), true);
         SeekBar.AddHandler(LostMouseCaptureEvent, new MouseEventHandler(Seek_LostCapture), true);
-        SeekBar.MouseMove += Seek_Move;
+        SeekBar.AddHandler(PreviewMouseMoveEvent, new MouseEventHandler(Seek_Move), true);
         Width = Math.Min(Settings.Width, SystemParameters.WorkArea.Width);
         Height = Math.Min(Settings.Height, SystemParameters.WorkArea.Height);
         QueueList.ItemsSource = _queue;
@@ -70,6 +72,12 @@ public partial class MainWindow : Window
         _clickTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(240) };
         _clickTimer.Tick += (_, _) => { _clickTimer.Stop(); Run(TogglePlayAsync); };
         StateChanged += (_, _) => MaxButton.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+        Stage.SizeChanged += (_, _) =>
+        {
+            EmptyArtwork.Visibility = Stage.ActualWidth >= 920 ? Visibility.Visible : Visibility.Collapsed;
+            EmptyTitle.FontSize = Stage.ActualHeight < 360 ? 32 : 43;
+            EmptyTitle.LineHeight = Stage.ActualHeight < 360 ? 40 : 54;
+        };
         Loaded += (_, _) => StatusText.Text = "준비됨 · 파일을 놓거나 Ctrl+O로 열기";
     }
 
@@ -239,7 +247,7 @@ public partial class MainWindow : Window
             await EnsurePlayerAsync();
             if (_closed || generation != _openGeneration) return;
             _loaded = false;
-            _scrubbing = false;
+            CancelSeek();
             _suppressCurrentHistory = false;
             _waitingFirstFrame = true;
             LastPlaybackReadyMilliseconds = 0;
@@ -314,7 +322,7 @@ public partial class MainWindow : Window
         {
             var selected = Math.Abs(double.Parse((string)button.Tag, CultureInfo.InvariantCulture) - value) < .005;
             button.Background = selected ? (Brush)FindResource("Accent") : Brushes.Transparent;
-            button.Foreground = selected ? new SolidColorBrush(Color.FromRgb(12, 28, 50)) : (Brush)FindResource("Muted");
+            button.Foreground = (Brush)FindResource(selected ? "AccentInk" : "Muted");
         }
     }
     private async Task ChangeVolumeAsync(double amount)
@@ -396,7 +404,7 @@ public partial class MainWindow : Window
         {
             WindowState = WindowState.Normal;
             _fullScreen = false;
-            TitleRow.Height = new GridLength(52);
+            TitleRow.Height = new GridLength(64);
             TitleBar.Visibility = Visibility.Visible;
             ResizeMode = ResizeMode.CanResize;
             Left = _previousBounds.Left; Top = _previousBounds.Top; Width = _previousBounds.Width; Height = _previousBounds.Height;
@@ -477,7 +485,7 @@ public partial class MainWindow : Window
     private void ShowHelp()
     {
         MessageBox.Show(this,
-            "신플레이어 0.2.0\n\nCtrl+Shift+S    자막별 일괄 캡처\n" +
+            $"신플레이어 {typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}\n\nCtrl+Shift+S    자막별 일괄 캡처\n" +
             "Space     재생 / 일시정지\n← / →     5초 이동 (Shift: 30초)\n↑ / ↓      음량 조절\n[ / ]        0.25배속 조절 (Shift: 0.05배)\nR / Backspace    1배속으로 복귀\nF / F11    전체화면 (Esc: 해제)\nM            음소거\nA             구간 반복 시작 → 끝 → 해제\n. / ,         다음 / 이전 프레임\nS             자막 표시 / 숨기기\nN / Shift+N    다음 / 이전 영상\nCtrl+O     영상 열기\nCtrl+L      재생목록\nCtrl+S      화면 저장\nCtrl+Q     완전히 종료\n\n" +
             "창을 닫으면 재생을 멈추고 트레이에서 대기합니다.\n트레이 아이콘을 더블클릭하면 다시 열립니다.\n\n" + (_player?.Version ?? "mpv") + " · .NET 8 / Windows x64\n신플레이어 소스: MIT · 한국AI교육진흥원\n외부 구성요소에는 별도 라이선스가 적용됩니다.\n소스와 라이선스는 설치 폴더에 포함되어 있습니다.",
             "신플레이어 · 단축키", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -546,6 +554,7 @@ public partial class MainWindow : Window
     private void Add_Click(object sender, RoutedEventArgs e) => OpenDialog(true);
     private void Recent_Click(object sender, RoutedEventArgs e) => ShowRecentMenu();
     private void More_Click(object sender, RoutedEventArgs e) => ShowMoreMenu();
+    private void Capture_Click(object sender, RoutedEventArgs e) => ShowSubtitleCapture();
     private void Play_Click(object sender, RoutedEventArgs e) => Run(TogglePlayAsync);
     private void Backward_Click(object sender, RoutedEventArgs e) => Run(() => SeekAsync(-5));
     private void Forward_Click(object sender, RoutedEventArgs e) => Run(() => SeekAsync(5));
@@ -580,25 +589,66 @@ public partial class MainWindow : Window
     private void Seek_Down(object sender, MouseButtonEventArgs e)
     {
         if (!_loaded || _player!.Number("duration") <= 0) return;
-        _scrubbing = true;
-        PositionText.Text = MediaFiles.Time(SeekBar.Value);
-        if (Mouse.LeftButton == MouseButtonState.Pressed && SeekBar.Template.FindName("PART_Track", SeekBar) is Track track && !track.Thumb.IsMouseOver)
-            SeekBar.CaptureMouse();
+        e.Handled = true;
+        BeginSeek(e.GetPosition(SeekBar));
     }
     private void Seek_Move(object sender, MouseEventArgs e)
     {
-        if (_scrubbing && SeekBar.IsMouseCaptured && e.LeftButton == MouseButtonState.Pressed && SeekBar.Template.FindName("PART_Track", SeekBar) is Track track)
-            SeekBar.Value = Math.Clamp(track.ValueFromPoint(e.GetPosition(track)), SeekBar.Minimum, SeekBar.Maximum);
+        if (!_scrubbing || !SeekBar.IsMouseCaptured || e.LeftButton != MouseButtonState.Pressed) return;
+        e.Handled = true;
+        UpdateSeek(e.GetPosition(SeekBar));
     }
     private void Seek_Changed(object sender, RoutedPropertyChangedEventArgs<double> e) { if (_scrubbing) PositionText.Text = MediaFiles.Time(e.NewValue); }
-    private void Seek_Up(object sender, MouseButtonEventArgs e) => CommitSeek();
+    private void Seek_Up(object sender, MouseButtonEventArgs e)
+    {
+        if (!_scrubbing) return;
+        e.Handled = true;
+        EndSeek(e.GetPosition(SeekBar));
+    }
+    private double? SeekTarget(Point position)
+    {
+        if (SeekBar.Template.FindName("PART_Track", SeekBar) is not Track track) return null;
+        // Coordinates are WPF DIPs, including DPI and layout transforms.
+        // Track.ValueFromPoint uses an old arranged thumb offset when Value has
+        // just changed. Fixed geometry avoids applying the click delta twice.
+        var x = SeekBar.TranslatePoint(position, track).X;
+        var thumbWidth = track.Thumb?.ActualWidth ?? 0;
+        var travel = track.ActualWidth - thumbWidth;
+        if (!double.IsFinite(x) || !double.IsFinite(travel) || travel <= 0) return null;
+        var fraction = Math.Clamp((x - thumbWidth / 2) / travel, 0, 1);
+        if (track.IsDirectionReversed) fraction = 1 - fraction;
+        return SeekBar.Minimum + fraction * (SeekBar.Maximum - SeekBar.Minimum);
+    }
+    private void BeginSeek(Point position)
+    {
+        if (!_loaded || _player!.Number("duration") <= 0 || SeekTarget(position) is not double target) return;
+        _scrubbing = true;
+        SeekBar.CaptureMouse();
+        SeekBar.Value = target;
+        PositionText.Text = MediaFiles.Time(target);
+    }
+    private void UpdateSeek(Point position)
+    {
+        if (_scrubbing && SeekTarget(position) is double target) SeekBar.Value = target;
+    }
+    private void EndSeek(Point position)
+    {
+        if (!_scrubbing) return;
+        // Mouse moves can be coalesced, so use the release coordinate as well.
+        UpdateSeek(position);
+        CommitSeek();
+    }
+    private void CancelSeek()
+    {
+        _scrubbing = false;
+        if (SeekBar.IsMouseCaptured) SeekBar.ReleaseMouseCapture();
+    }
     private void Seek_LostCapture(object sender, MouseEventArgs e) { if (!SeekBar.IsMouseCaptureWithin) CommitSeek(); }
     private void CommitSeek()
     {
         if (!_scrubbing) return;
         var target = SeekBar.Value;
-        _scrubbing = false;
-        if (SeekBar.IsMouseCaptured) SeekBar.ReleaseMouseCapture();
+        CancelSeek();
         Run(() => SeekAsync(target, false));
     }
     private void Queue_DoubleClick(object sender, MouseButtonEventArgs e) { if (QueueList.SelectedIndex >= 0) Run(() => PlayIndexAsync(QueueList.SelectedIndex)); }
@@ -639,7 +689,7 @@ public partial class MainWindow : Window
         RememberCurrent(); _app.SaveSettings();
         _openGeneration++;
         _pendingLoad?.TrySetResult(false);
-        _scrubbing = false;
+        CancelSeek();
         _loaded = false;
         Hide();
         _clickTimer.Stop();
@@ -655,14 +705,14 @@ public partial class MainWindow : Window
             RememberCurrent();
             _loaded = false;
             _waitingFirstFrame = false;
-            _scrubbing = false;
+            CancelSeek();
             if (_player != null) await _player.CommandAsync("stop");
             _currentPath = null;
             _currentIndex = -1;
             Video.Visibility = Visibility.Hidden;
             EmptyState.Visibility = Visibility.Visible;
-            EmptyTitle.Text = "영상 파일을 열어주세요";
-            EmptyDescription.Text = "여기에 파일을 놓거나, 아래 버튼으로 선택하세요.";
+            EmptyTitle.Text = "당신의 영상,\n원하는 속도로.";
+            EmptyDescription.Text = "영상 파일을 이곳에 놓아주세요.";
             TitleFile.Text = ""; Title = "신플레이어";
             RefreshState();
     }
@@ -672,6 +722,7 @@ public partial class MainWindow : Window
         RememberCurrent();
         if (!_fullScreen && WindowState == WindowState.Normal) { Settings.Width = Width; Settings.Height = Height; }
         _closed = true;
+        CancelSeek();
         _openGeneration++;
         _pendingLoad?.TrySetResult(false);
         _clickTimer.Stop();

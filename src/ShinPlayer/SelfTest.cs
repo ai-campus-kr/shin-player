@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -41,7 +42,17 @@ public partial class MainWindow
         {
             CaptureUi(Path.Combine(outputDirectory, "01-home.png"));
             var elapsed = (DateTime.Now - Process.GetCurrentProcess().StartTime).TotalMilliseconds;
-            await Task.CompletedTask;
+            VerifyButtonLayout();
+            foreach (var width in new[] { 820d, 1180d })
+            {
+                Width = width; Height = width == 820 ? 560 : 760;
+                PlaylistPanel.Visibility = Visibility.Visible;
+                await Task.Delay(80);
+                VerifyButtonLayout();
+                if (EmptyArtwork.Visibility == Visibility.Visible) throw new Exception("Empty artwork overlaps the narrow stage");
+                CaptureUi(Path.Combine(outputDirectory, $"home-playlist-{width:0}.png"));
+            }
+            PlaylistPanel.Visibility = Visibility.Collapsed; UpdateLayout();
             return new { readyMs = elapsed, windowWidth = ActualWidth, windowHeight = ActualHeight };
         });
         var fixture = Path.Combine(fixtureDirectory, "한글 영상 sample.mp4");
@@ -118,16 +129,17 @@ public partial class MainWindow
         });
         await Test("seekbar-handled-pointer-events", async () =>
         {
-            // Slider's built-in move-to-point class handler sets Handled before
-            // application handlers run. Exercise that routed event contract.
-            _scrubbing = false;
-            SeekBar.Value = 3;
+            // Routing smoke check only. The separate coordinate tests start from
+            // independent positions rather than assigning a desired Slider.Value.
+            CancelSeek();
+            UpdateLayout();
+            var expected = SeekTarget(Mouse.GetPosition(SeekBar)) ?? throw new Exception("No track geometry");
             SeekBar.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
             { RoutedEvent = UIElement.PreviewMouseLeftButtonDownEvent, Source = SeekBar, Handled = true });
             if (!_scrubbing) throw new Exception("Slider consumed mouse-down before the seek handler received it.");
             SeekBar.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
             { RoutedEvent = UIElement.PreviewMouseLeftButtonUpEvent, Source = SeekBar, Handled = true });
-            await WaitUntilAsync(() => Math.Abs(_player!.Number("time-pos") - 3) < .15, TimeSpan.FromSeconds(5));
+            await WaitUntilAsync(() => Math.Abs(_player!.Number("time-pos") - expected) < .15, TimeSpan.FromSeconds(5));
             if (_scrubbing) throw new Exception("Timeline interaction did not finish on pointer release.");
             return null;
         });
@@ -352,6 +364,7 @@ public partial class MainWindow
             PlaylistPanel.Visibility = Visibility.Collapsed;
             Width = 820; Height = 560;
             await Task.Delay(150);
+            VerifyButtonLayout();
             CaptureUi(Path.Combine(outputDirectory, "03-compact.png"));
             Width = 1180; Height = 760;
             return null;
@@ -371,6 +384,7 @@ public partial class MainWindow
             await WaitUntilAsync(() => _loaded, TimeSpan.FromSeconds(10));
             return new { idleCpuMsOver1500ms = idleCpu, reopenMs = LastLoadMilliseconds, workingSetMB = Process.GetCurrentProcess().WorkingSet64 / 1048576d };
         });
+        await RunSeekCoordinateTestsAsync(Test, fixtureDirectory);
         await RunCaptureTestsAsync(Test, fixtureDirectory, outputDirectory);
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "complete.txt"), failures == 0 ? "PASS" : $"FAIL {failures}");
         Environment.ExitCode = failures == 0 ? 0 : 1;
@@ -382,5 +396,32 @@ public partial class MainWindow
         bitmap.Render(this);
         var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using var file = File.Create(path); encoder.Save(file);
+    }
+    private static IEnumerable<T> VisualChildren<T>(DependencyObject root) where T : DependencyObject
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is T match) yield return match;
+            foreach (var descendant in VisualChildren<T>(child)) yield return descendant;
+        }
+    }
+    private void VerifyButtonLayout()
+    {
+        UpdateLayout();
+        var bounds = VisualChildren<Button>(Root).Where(x => x.IsVisible)
+            .Select(x => (Button: x, Rect: x.TransformToAncestor(Root).TransformBounds(new Rect(x.RenderSize))))
+            .ToArray();
+        var viewport = new Rect(-1, -1, Root.ActualWidth + 2, Root.ActualHeight + 2);
+        for (int i = 0; i < bounds.Length; i++)
+        {
+            if (!viewport.Contains(bounds[i].Rect)) throw new Exception($"Button outside window: {bounds[i].Button.Content}");
+            for (int j = i + 1; j < bounds.Length; j++)
+            {
+                var intersection = Rect.Intersect(bounds[i].Rect, bounds[j].Rect);
+                if (!intersection.IsEmpty && intersection.Width > 1 && intersection.Height > 1)
+                    throw new Exception($"Overlapping buttons: {bounds[i].Button.Content} / {bounds[j].Button.Content}");
+            }
+        }
     }
 }
