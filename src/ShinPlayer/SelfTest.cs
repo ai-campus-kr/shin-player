@@ -137,19 +137,23 @@ public partial class MainWindow
         });
         await Test("seekbar-handled-pointer-events", async () =>
         {
-            // Routing smoke check only. The separate coordinate tests start from
-            // independent positions rather than assigning a desired Slider.Value.
+            // Verify handled-event routing and the committed native seek here.
+            // The physical cursor can move between synthetic down/up events;
+            // independent coordinate expectations belong to SeekSelfTest.
             CancelSeek();
             UpdateLayout();
-            var expected = SeekTarget(Mouse.GetPosition(SeekBar)) ?? throw new Exception("No track geometry");
+            var requests = _player!.SeekRequestCount;
+            var restart = _player.RestartCount;
             SeekBar.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
             { RoutedEvent = UIElement.PreviewMouseLeftButtonDownEvent, Source = SeekBar, Handled = true });
             if (!_scrubbing) throw new Exception("Slider consumed mouse-down before the seek handler received it.");
             SeekBar.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
             { RoutedEvent = UIElement.PreviewMouseLeftButtonUpEvent, Source = SeekBar, Handled = true });
-            await WaitUntilAsync(() => Math.Abs(_player!.Number("time-pos") - expected) < .15, TimeSpan.FromSeconds(5));
+            var expected = SeekBar.Value;
             if (_scrubbing) throw new Exception("Timeline interaction did not finish on pointer release.");
-            return null;
+            await WaitUntilAsync(() => Math.Abs(_player.Number("time-pos") - expected) < .15 && _player.RestartCount > restart, TimeSpan.FromSeconds(5));
+            if (_player.SeekRequestCount != requests + 1) throw new Exception("Handled pointer events did not issue exactly one seek");
+            return new { committedPosition = expected, actualPosition = _player.Number("time-pos") };
         });
         await Test("volume-mute", async () =>
         {
