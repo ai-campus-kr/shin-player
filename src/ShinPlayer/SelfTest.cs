@@ -259,6 +259,7 @@ public partial class MainWindow
         await Test("playlist-keyboard-navigation-keeps-volume", () =>
         {
             PlaylistPanel.Visibility = Visibility.Visible;
+            Activate(); UpdateLayout();
             QueueList.Focus();
             if (!QueueList.IsKeyboardFocusWithin) throw new Exception("Could not focus playlist");
             double volume = VolumeBar.Value;

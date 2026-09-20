@@ -71,15 +71,23 @@ public partial class MainWindow
             await _player.CommandAsync("af", "add", "@shin-preserve:lavfi=[anull]");
             try
             {
-                var position = _player.Number("time-pos");
+                // Observed properties are delivered asynchronously. Speed/filter
+                // reconfiguration can leave the cached clock one event behind.
+                var position = double.Parse(_player.ReadProperty("time-pos"), CultureInfo.InvariantCulture);
                 var volume = _player.Number("volume");
                 await Task.WhenAll(new[] { 3d, 12, 0, 9, 6, 0 }.Select(SetAudioBoostAsync));
+                var positionAfter = double.Parse(_player.ReadProperty("time-pos"), CultureInfo.InvariantCulture);
                 var filters = _player.ReadProperty("af");
                 if (!filters.Contains("shin-preserve") || filters.Contains(AudioBoost.Label)) throw new Exception("Boost replaced unrelated filters or remained enabled");
                 if (Settings.AudioBoostDb != 0 || _player.AudioBoostDb != 0 || !_player.Flag("pause") || !_player.Flag("mute") ||
-                    Math.Abs(_player.Number("time-pos") - position) > .15 || Math.Abs(_player.Number("volume") - volume) > .01 ||
+                    Math.Abs(positionAfter - position) > .15 || Math.Abs(_player.Number("volume") - volume) > .01 ||
                     Math.Abs(_player.Number("speed") - 1.75) > .01 || !_player.Flag("audio-pitch-correction"))
-                    throw new Exception("Changing gain altered playback state");
+                    throw new Exception("Changing gain altered playback state: " + JsonSerializer.Serialize(new {
+                        positionBefore = position, positionAfter,
+                        volumeBefore = volume, volumeAfter = _player.Number("volume"), speed = _player.Number("speed"),
+                        paused = _player.Flag("pause"), muted = _player.Flag("mute"), pitchCorrection = _player.Flag("audio-pitch-correction"),
+                        savedBoost = Settings.AudioBoostDb, engineBoost = _player.AudioBoostDb
+                    }));
                 await SetAudioBoostAsync(6);
                 await OpenFilesAsync(new[] { Path.Combine(fixtures, "캡처 '테스트 [한글].mp4") });
                 await _player.SetAsync("pause", true);
@@ -88,7 +96,7 @@ public partial class MainWindow
                 await OpenFilesAsync(new[] { Path.Combine(fixtures, "한글 영상 sample.mp4") });
                 await _player.SetAsync("pause", true);
                 if (Settings.AudioBoostDb != 9 || !_player.ReadProperty("af").Contains(AudioBoost.Label)) throw new Exception("File changes lost the boost setting");
-                return new { unchangedVolume = volume, preservedOtherFilter = true, silentVideoSupported = true };
+                return new { positionBefore = position, positionAfter, unchangedVolume = volume, preservedOtherFilter = true, silentVideoSupported = true };
             }
             finally
             {
