@@ -30,4 +30,23 @@ for name, options in variants.items():
     print(name, flush=True)
 (out / '테스트 자막.srt').write_text('1\n00:00:00,000 --> 00:00:05,000\n신플레이어 한글 자막 테스트\n\n2\n00:00:05,000 --> 00:00:12,000\n배속을 바꿔도 자막은 영상에 맞춰집니다.\n', encoding='utf-8')
 (out / 'broken.mp4').write_bytes(b'This is not a video.\x00\xff')
+
+# Subtitle capture: distinct frame colors, embedded Korean/English tracks,
+# a filename that would break shell/filter-string interpolation, and ASS in MKV.
+captions = out / 'capture-ko.srt'
+captions.write_text('1\n00:00:00,200 --> 00:00:01,800\n첫 번째 빨간 장면\n\n2\n00:00:02,200 --> 00:00:03,800\n두 번째 초록 장면\n여러 줄 자막 테스트\n\n3\n00:00:04,200 --> 00:00:05,800\n세 번째 파란 장면\n', encoding='utf-8')
+english = out / 'capture-en.srt'
+english.write_text('1\n00:00:00,500 --> 00:00:01,500\nRed scene\n\n2\n00:00:04,500 --> 00:00:05,500\nBlue scene\n', encoding='utf-8')
+capture_video = out / "캡처 '테스트 [한글].mp4"
+if not capture_video.exists():
+    run('-f', 'lavfi', '-i', 'color=red:size=640x360:rate=30:duration=2',
+        '-f', 'lavfi', '-i', 'color=green:size=640x360:rate=30:duration=2',
+        '-f', 'lavfi', '-i', 'color=blue:size=640x360:rate=30:duration=2',
+        '-i', captions, '-i', english, '-filter_complex', '[0:v][1:v][2:v]concat=n=3:v=1:a=0[v]',
+        '-map', '[v]', '-map', '3:s', '-map', '4:s', '-c:v', 'libx264', '-preset', 'ultrafast',
+        '-g', '30', '-c:s', 'mov_text', '-metadata:s:s:0', 'language=kor',
+        '-metadata:s:s:1', 'language=eng', capture_video)
+capture_mkv = out / 'capture-ass.mkv'
+if not capture_mkv.exists():
+    run('-i', capture_video, '-map', '0:v', '-map', '0:s:0', '-c:v', 'copy', '-c:s', 'ass', capture_mkv)
 print(out)

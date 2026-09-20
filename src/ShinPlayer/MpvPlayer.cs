@@ -90,7 +90,7 @@ public sealed class MpvPlayer : IDisposable
             ["["]="slower", ["]"]="faster", ["{"]="slower-fine", ["}"]="faster-fine", ["BS"]="normal-speed", ["r"]="normal-speed",
             ["f"]="fullscreen", ["F11"]="fullscreen", ["ESC"]="escape", ["m"]="mute", ["s"]="subtitles",
             ["Ctrl+o"]="open", ["Ctrl+O"]="open", ["Ctrl+l"]="playlist", ["Ctrl+L"]="playlist", ["Ctrl+q"]="quit",
-            ["a"]="ab", ["."]="frame-next", [","]="frame-back", ["Ctrl+s"]="screenshot", ["n"]="next", ["Shift+n"]="previous",
+            ["a"]="ab", ["."]="frame-next", [","]="frame-back", ["Ctrl+s"]="screenshot", ["Ctrl+Shift+s"]="subtitle-capture", ["Ctrl+S"]="subtitle-capture", ["n"]="next", ["Shift+n"]="previous",
             ["HOME"]="start", ["F1"]="help"
         };
         try

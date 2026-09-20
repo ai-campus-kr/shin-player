@@ -18,6 +18,18 @@ The public archive produced by `scripts/package-release.ps1` does **not** contai
 
 Local builds made with `scripts/build.ps1` include the engine for local use. Do not upload the local `dist/ShinPlayer` directory as the public release. `ShinPlayer-source.zip` supplies the ShinPlayer application source, not the complete corresponding source of the prebuilt engine and all its dependencies. Redistribution of an engine-bundled package requires supplying the matching corresponding source and notices for that exact engine and its dependencies. Links here are provenance information, not a substitute for those materials.
 
+## Optional FFmpeg command-line tools for subtitle capture
+
+Subtitle capture uses a locally installed `ffmpeg.exe` / `ffprobe.exe` pair on PATH when available. Otherwise, the application downloads this pinned package directly from Gyan's upstream site on first use:
+
+- Build: FFmpeg 8.1.2 essentials, Windows x64, GPLv3.
+- Archive: https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-essentials_build.zip
+- SHA256: `db580001caa24ac104c8cb856cd113a87b0a443f7bdf47d8c12b1d740584a2ec`
+- Build information, licenses and upstream source links: https://www.gyan.dev/ffmpeg/builds/
+- FFmpeg source: https://ffmpeg.org/download.html ; documentation: https://ffmpeg.org/ffmpeg.html
+
+The package hash is checked before extracting executables. The archive's license and README are retained with the tools in `%LOCALAPPDATA%\ShinPlayer\capture-tools\ffmpeg-8.1.2`. Neither the public ShinPlayer ZIP nor its source ZIP includes these tool binaries. This upstream download does not send local videos or subtitles to any server. As with the playback engine, redistributing a tool-bundled package requires the corresponding source and notices for the exact build and dependencies.
+
 ## Microsoft .NET
 
 The self-contained Windows build includes .NET 8 and Windows Desktop runtime files. They are provided under their Microsoft/.NET open-source licenses. The exact runtime package's licenses and notices are copied to `licenses/dotnet-runtime` and `licenses/dotnet-windowsdesktop` during packaging. See also https://github.com/dotnet/runtime/blob/main/LICENSE.TXT and https://github.com/dotnet/wpf/blob/main/LICENSE.TXT.

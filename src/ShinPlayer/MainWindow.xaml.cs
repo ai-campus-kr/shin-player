@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private readonly App _app = (App)Application.Current;
     private PlayerSettings Settings => _app.Settings;
     private MpvPlayer? _player;
+    private SubtitleCaptureWindow? _captureWindow;
     private Task? _initializing;
     private readonly SemaphoreSlim _operations = new(1, 1);
     private readonly ObservableCollection<MediaItem> _queue = new();
@@ -358,6 +359,14 @@ public partial class MainWindow : Window
         await _player.CommandAsync("screenshot-to-file", path, "subtitles");
         StatusText.Text = "화면 저장: " + path;
     }
+    private void ShowSubtitleCapture()
+    {
+        if (_captureWindow != null) { _captureWindow.Activate(); return; }
+        if (!_loaded || _currentPath == null || _player!.Number("video-params/w") == 0) { StatusText.Text = "캡처할 영상을 먼저 열어주세요."; return; }
+        _captureWindow = new SubtitleCaptureWindow(_currentPath, _player.Number("sub-delay")) { Owner = this };
+        _captureWindow.Closed += (_, _) => _captureWindow = null;
+        _captureWindow.Show();
+    }
     public void OpenDialog(bool append = false)
     {
         var dialog = new OpenFileDialog { Title = append ? "재생목록에 추가" : "신플레이어 · 영상 열기", Multiselect = true, Filter = "미디어 파일|" + string.Join(";", MediaFiles.VideoExtensions.Concat(MediaFiles.AudioExtensions).Select(x => "*" + x)) + "|모든 파일|*.*" };
@@ -400,6 +409,7 @@ public partial class MainWindow : Window
         AddMenu(menu, "영상 열기…", () => OpenDialog(), "Ctrl+O");
         AddMenu(menu, "최근 영상", ShowRecentMenu);
         AddMenu(menu, "화면 저장", () => Run(TakeScreenshotAsync), "Ctrl+S");
+        AddMenu(menu, "자막별 일괄 캡처…", ShowSubtitleCapture, "Ctrl+Shift+S");
         menu.Items.Add(new Separator());
         AddMenu(menu, "다음 영상 자동 재생 · 목록 순서", () => { PlaylistPanel.Visibility = Visibility.Visible; });
         AddToggle(menu, "현재 영상 반복", _player?.Text("loop-file") == "inf", () => { if (_player != null) Run(() => _player.SetAsync("loop-file", _player.Text("loop-file") == "inf" ? "no" : "inf")); });
@@ -425,6 +435,7 @@ public partial class MainWindow : Window
         AddMenu(menu, "자막 파일 추가…", OpenSubtitle);
         AddToggle(menu, "자막 표시", _player?.Flag("sub-visibility") != false, () => { if (_player != null) Run(() => _player.CommandAsync("cycle", "sub-visibility")); });
         AddMenu(menu, "다음 자막 트랙", () => { if (_loaded) Run(() => _player!.CommandAsync("cycle", "sid")); });
+        AddMenu(menu, "자막별 일괄 캡처…", ShowSubtitleCapture, "Ctrl+Shift+S");
         AddMenu(menu, "다음 오디오 트랙", () => { if (_loaded) Run(() => _player!.CommandAsync("cycle", "aid")); });
         menu.Items.Add(new Separator());
         AddMenu(menu, "자막 0.1초 빠르게", () => { if (_loaded) Run(() => _player!.CommandAsync("add", "sub-delay", "-0.1")); });
@@ -466,7 +477,7 @@ public partial class MainWindow : Window
     private void ShowHelp()
     {
         MessageBox.Show(this,
-            "신플레이어 0.1.1\n\n" +
+            "신플레이어 0.2.0\n\nCtrl+Shift+S    자막별 일괄 캡처\n" +
             "Space     재생 / 일시정지\n← / →     5초 이동 (Shift: 30초)\n↑ / ↓      음량 조절\n[ / ]        0.25배속 조절 (Shift: 0.05배)\nR / Backspace    1배속으로 복귀\nF / F11    전체화면 (Esc: 해제)\nM            음소거\nA             구간 반복 시작 → 끝 → 해제\n. / ,         다음 / 이전 프레임\nS             자막 표시 / 숨기기\nN / Shift+N    다음 / 이전 영상\nCtrl+O     영상 열기\nCtrl+L      재생목록\nCtrl+S      화면 저장\nCtrl+Q     완전히 종료\n\n" +
             "창을 닫으면 재생을 멈추고 트레이에서 대기합니다.\n트레이 아이콘을 더블클릭하면 다시 열립니다.\n\n" + (_player?.Version ?? "mpv") + " · .NET 8 / Windows x64\n신플레이어 소스: MIT · 한국AI교육진흥원\n외부 구성요소에는 별도 라이선스가 적용됩니다.\n소스와 라이선스는 설치 폴더에 포함되어 있습니다.",
             "신플레이어 · 단축키", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -503,6 +514,7 @@ public partial class MainWindow : Window
             case "next": Run(() => PlayIndexAsync(_currentIndex + 1)); break;
             case "previous": Run(() => PlayIndexAsync(_currentIndex - 1)); break;
             case "screenshot": Run(TakeScreenshotAsync); break;
+            case "subtitle-capture": ShowSubtitleCapture(); break;
             case "help": ShowHelp(); break;
             case "quit": _app.Quit(); break;
         }
@@ -513,7 +525,7 @@ public partial class MainWindow : Window
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
         bool ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control), shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
         if (QueueList.IsKeyboardFocusWithin && !ctrl && key is Key.Up or Key.Down or Key.Home or Key.End or Key.PageUp or Key.PageDown or Key.Enter or Key.Delete) return;
-        string? action = ctrl ? key switch { Key.O => "open", Key.L => "playlist", Key.Q => "quit", Key.S => "screenshot", _ => null } : key switch
+        string? action = ctrl ? key switch { Key.O => "open", Key.L => "playlist", Key.Q => "quit", Key.S => shift ? "subtitle-capture" : "screenshot", _ => null } : key switch
         {
             Key.Space or Key.P => "play", Key.Right => shift ? "forward-long" : "forward", Key.Left => shift ? "backward-long" : "backward",
             Key.Up => "volume-up", Key.Down => "volume-down", Key.OemCloseBrackets => shift ? "faster-fine" : "faster", Key.OemOpenBrackets => shift ? "slower-fine" : "slower",
@@ -656,6 +668,7 @@ public partial class MainWindow : Window
     }
     public void PrepareExit()
     {
+        _captureWindow?.Cancel();
         RememberCurrent();
         if (!_fullScreen && WindowState == WindowState.Normal) { Settings.Width = Width; Settings.Height = Height; }
         _closed = true;

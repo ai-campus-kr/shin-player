@@ -11,7 +11,7 @@ foreach ($name in @('complete.txt', 'results.json')) {
     if (Test-Path -LiteralPath $oldReport) { Remove-Item -LiteralPath $oldReport }
 }
 $process = Start-Process -FilePath $Executable -ArgumentList @('--self-test',('"' + $fixtures + '"'),('"' + $reportPath + '"')) -PassThru -WindowStyle Hidden
-if (-not $process.WaitForExit(120000)) { throw 'Integration test timed out. Inspect the test process and artifacts.' }
+if (-not $process.WaitForExit(300000)) { throw 'Integration test timed out. Inspect the test process and artifacts.' }
 $result = Get-Content -LiteralPath (Join-Path $reportPath 'results.json') -Raw | ConvertFrom-Json
 $result.tests | Select-Object name,passed,elapsedMs | Format-Table -AutoSize
 if ($process.ExitCode -ne 0 -or $result.failures -gt 0 -or -not (Test-Path -LiteralPath (Join-Path $reportPath 'complete.txt'))) { throw 'Integration test failed.' }
