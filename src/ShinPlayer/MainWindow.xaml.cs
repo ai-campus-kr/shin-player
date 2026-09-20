@@ -72,12 +72,8 @@ public partial class MainWindow : Window
         _clickTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(240) };
         _clickTimer.Tick += (_, _) => { _clickTimer.Stop(); Run(TogglePlayAsync); };
         StateChanged += (_, _) => MaxButton.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
-        Stage.SizeChanged += (_, _) =>
-        {
-            EmptyArtwork.Visibility = Stage.ActualWidth >= 920 ? Visibility.Visible : Visibility.Collapsed;
-            EmptyTitle.FontSize = Stage.ActualHeight < 360 ? 32 : 43;
-            EmptyTitle.LineHeight = Stage.ActualHeight < 360 ? 40 : 54;
-        };
+        Stage.SizeChanged += (_, _) => UpdateDesignEmptyLayout();
+        ApplyDesignLayout();
         Loaded += (_, _) => StatusText.Text = "준비됨 · 파일을 놓거나 Ctrl+O로 열기";
     }
 
@@ -92,7 +88,7 @@ public partial class MainWindow : Window
         await EnsurePlayerAsync();
         await WaitUntilAsync(() => _player!.Flag("vo-configured"), TimeSpan.FromSeconds(15));
     }
-    public object GetStatus() => new { running = true, visible = IsVisible, engineReady = _player?.Flag("vo-configured") ?? false, loaded = _loaded, path = _currentPath, position = _player?.Number("time-pos") ?? 0, speed = _requestedSpeed, paused = _player?.Flag("pause") ?? true, idle = _player?.Flag("idle-active") ?? true, loadMs = LastLoadMilliseconds, playbackReadyMs = LastPlaybackReadyMilliseconds, queueCount = _queue.Count };
+    public object GetStatus() => new { running = true, visible = IsVisible, engineReady = _player?.Flag("vo-configured") ?? false, loaded = _loaded, path = _currentPath, position = _player?.Number("time-pos") ?? 0, speed = _requestedSpeed, paused = _player?.Flag("pause") ?? true, idle = _player?.Flag("idle-active") ?? true, loadMs = LastLoadMilliseconds, playbackReadyMs = LastPlaybackReadyMilliseconds, queueCount = _queue.Count, uiDesign = Settings.UiDesign };
     private async Task InitializePlayerAsync()
     {
         Video.Visibility = Visibility.Visible;
@@ -348,14 +344,14 @@ public partial class MainWindow : Window
         else if (!_loopB.HasValue)
         {
             if (now <= _loopA.Value + .2) { StatusText.Text = "반복 끝은 시작보다 뒤에 지정해 주세요."; return; }
-            _loopB = now; await _player.SetAsync("ab-loop-b", now); AbButton.Content = "A↔B"; AbButton.Foreground = (Brush)FindResource("Accent"); StatusText.Text = $"구간 반복 {MediaFiles.Time(_loopA.Value)} – {MediaFiles.Time(now)} · A로 해제";
+            _loopB = now; await _player.SetAsync("ab-loop-b", now); AbButton.Content = "A↔B"; AbButton.SetResourceReference(ForegroundProperty, "Accent"); StatusText.Text = $"구간 반복 {MediaFiles.Time(_loopA.Value)} – {MediaFiles.Time(now)} · A로 해제";
         }
         else { await ClearLoopAsync(); StatusText.Text = "구간 반복 해제"; }
     }
     private async Task ClearLoopAsync()
     {
         _loopA = _loopB = null;
-        AbButton.Content = "A–B"; AbButton.Foreground = (Brush)FindResource("Ink");
+        AbButton.Content = "A–B"; AbButton.SetResourceReference(ForegroundProperty, "Ink");
         if (_player != null) { await _player.SetAsync("ab-loop-a", "no"); await _player.SetAsync("ab-loop-b", "no"); }
     }
     private async Task TakeScreenshotAsync()
@@ -404,12 +400,13 @@ public partial class MainWindow : Window
         {
             WindowState = WindowState.Normal;
             _fullScreen = false;
-            TitleRow.Height = new GridLength(64);
+            TitleRow.Height = new GridLength(CurrentDesign.HeaderHeight);
             TitleBar.Visibility = Visibility.Visible;
             ResizeMode = ResizeMode.CanResize;
             Left = _previousBounds.Left; Top = _previousBounds.Top; Width = _previousBounds.Width; Height = _previousBounds.Height;
             WindowState = _previousWindowState;
         }
+        System.Windows.Shell.WindowChrome.GetWindowChrome(this).CaptionHeight = _fullScreen ? 0 : CurrentDesign.HeaderHeight;
     }
     private void ShowMoreMenu()
     {
@@ -418,6 +415,7 @@ public partial class MainWindow : Window
         AddMenu(menu, "최근 영상", ShowRecentMenu);
         AddMenu(menu, "화면 저장", () => Run(TakeScreenshotAsync), "Ctrl+S");
         AddMenu(menu, "자막별 일괄 캡처…", ShowSubtitleCapture, "Ctrl+Shift+S");
+        AddMenu(menu, "UI 선택…", ShowDesignPicker);
         menu.Items.Add(new Separator());
         AddMenu(menu, "다음 영상 자동 재생 · 목록 순서", () => { PlaylistPanel.Visibility = Visibility.Visible; });
         AddToggle(menu, "현재 영상 반복", _player?.Text("loop-file") == "inf", () => { if (_player != null) Run(() => _player.SetAsync("loop-file", _player.Text("loop-file") == "inf" ? "no" : "inf")); });
@@ -711,9 +709,9 @@ public partial class MainWindow : Window
             _currentIndex = -1;
             Video.Visibility = Visibility.Hidden;
             EmptyState.Visibility = Visibility.Visible;
-            EmptyTitle.Text = "당신의 영상,\n원하는 속도로.";
-            EmptyDescription.Text = "영상 파일을 이곳에 놓아주세요.";
+            SetIdleHeading();
             TitleFile.Text = ""; Title = "신플레이어";
+            StatusText.Text = "준비됨 · 파일을 놓거나 Ctrl+O로 열기";
             RefreshState();
     }
     public void PrepareExit()

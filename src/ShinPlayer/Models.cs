@@ -25,6 +25,7 @@ public sealed class PlayerSettings
     public bool RememberSpeed { get; set; } = true;
     public double Width { get; set; } = 1180;
     public double Height { get; set; } = 760;
+    public string UiDesign { get; set; } = UiDesigns.DefaultId;
     public List<RecentFile> Recent { get; set; } = new();
     public static string DirectoryPath => System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ShinPlayer");
     public static string FilePath => System.IO.Path.Combine(DirectoryPath, "settings.json");
@@ -41,6 +42,7 @@ public sealed class PlayerSettings
     }
     public void Normalize()
     {
+        UiDesign = UiDesigns.Get(UiDesign).Id;
         Volume = Clamp(Volume, 0, 100, 70);
         Speed = Clamp(Speed, .25, 8, 1);
         Width = Clamp(Width, 820, 3840, 1180);

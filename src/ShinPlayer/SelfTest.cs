@@ -386,6 +386,7 @@ public partial class MainWindow
         });
         await RunSeekCoordinateTestsAsync(Test, fixtureDirectory);
         await RunCaptureTestsAsync(Test, fixtureDirectory, outputDirectory);
+        await RunDesignTestsAsync(Test, fixtureDirectory, outputDirectory);
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "complete.txt"), failures == 0 ? "PASS" : $"FAIL {failures}");
         Environment.ExitCode = failures == 0 ? 0 : 1;
     }

@@ -35,6 +35,7 @@ public partial class App : Application
         IsTest = e.Args.Contains("--self-test");
         IsDiagnosticSession = e.Args.Contains("--diagnostic-session");
         Settings = IsTest || IsDiagnosticSession ? new PlayerSettings { Resume = false, Muted = true } : PlayerSettings.Load();
+        UiDesigns.ApplyPalette(UiDesigns.Get(Settings.UiDesign));
         if (!IsTest)
         {
             CreateTray();

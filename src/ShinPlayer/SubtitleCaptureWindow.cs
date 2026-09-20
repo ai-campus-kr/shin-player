@@ -48,14 +48,16 @@ internal sealed class SubtitleCaptureWindow : Window
         panel.RowDefinitions.Add(new() { Height = GridLength.Auto });
         var heading = new StackPanel();
         heading.Children.Add(new TextBlock { Text = "자막 한 구간마다 사진 한 장", FontSize = 22, FontWeight = FontWeights.SemiBold });
-        heading.Children.Add(new TextBlock { Text = Path.GetFileName(path), TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = path, Margin = new(0, 8, 0, 20), Foreground = (Brush)FindResource("Muted") });
+        var filename = new TextBlock { Text = Path.GetFileName(path), TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = path, Margin = new(0, 8, 0, 20) };
+        filename.SetResourceReference(TextBlock.ForegroundProperty, "Muted"); heading.Children.Add(filename);
         panel.Children.Add(heading);
         var body = new StackPanel();
         var scroll = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
         Grid.SetRow(scroll, 1); panel.Children.Add(scroll);
         body.Children.Add(new TextBlock { Text = "캡처 기준 내장 자막", Margin = new(0, 0, 0, 8) });
         body.Children.Add(_tracks); body.Children.Add(_include);
-        body.Children.Add(new TextBlock { Text = "각 구간의 중간 시점을 PNG로 저장합니다. 재생 위치는 바뀌지 않습니다.\nGPT/API를 사용하지 않습니다. 외부·이미지 자막은 지원하지 않습니다.", TextWrapping = TextWrapping.Wrap, FontSize = 12, Foreground = (Brush)FindResource("Muted"), Margin = new(0, 14, 0, 0) });
+        var description = new TextBlock { Text = "각 구간의 중간 시점을 PNG로 저장합니다. 재생 위치는 바뀌지 않습니다.\nGPT/API를 사용하지 않습니다. 외부·이미지 자막은 지원하지 않습니다.", TextWrapping = TextWrapping.Wrap, FontSize = 12, Margin = new(0, 14, 0, 0) };
+        description.SetResourceReference(TextBlock.ForegroundProperty, "Muted"); body.Children.Add(description);
         body.Children.Add(_status); body.Children.Add(_progress); body.Children.Add(_folder);
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new(0, 18, 0, 0) };
         _start.Style = (Style)FindResource("Primary");
