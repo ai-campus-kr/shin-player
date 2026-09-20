@@ -69,6 +69,7 @@ public partial class MainWindow : Window
         VolumeText.Text = $"{Settings.Volume:0}";
         MuteButton.Content = Settings.Muted ? "\uE74F" : "\uE767";
         PaintSpeed(_requestedSpeed);
+        PaintAudioBoost();
         _clickTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(240) };
         _clickTimer.Tick += (_, _) => { _clickTimer.Stop(); Run(TogglePlayAsync); };
         StateChanged += (_, _) => MaxButton.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
@@ -88,7 +89,7 @@ public partial class MainWindow : Window
         await EnsurePlayerAsync();
         await WaitUntilAsync(() => _player!.Flag("vo-configured"), TimeSpan.FromSeconds(15));
     }
-    public object GetStatus() => new { running = true, visible = IsVisible, engineReady = _player?.Flag("vo-configured") ?? false, loaded = _loaded, path = _currentPath, position = _player?.Number("time-pos") ?? 0, speed = _requestedSpeed, paused = _player?.Flag("pause") ?? true, idle = _player?.Flag("idle-active") ?? true, loadMs = LastLoadMilliseconds, playbackReadyMs = LastPlaybackReadyMilliseconds, queueCount = _queue.Count, uiDesign = Settings.UiDesign };
+    public object GetStatus() => new { running = true, visible = IsVisible, engineReady = _player?.Flag("vo-configured") ?? false, loaded = _loaded, path = _currentPath, position = _player?.Number("time-pos") ?? 0, speed = _requestedSpeed, paused = _player?.Flag("pause") ?? true, idle = _player?.Flag("idle-active") ?? true, loadMs = LastLoadMilliseconds, playbackReadyMs = LastPlaybackReadyMilliseconds, queueCount = _queue.Count, uiDesign = Settings.UiDesign, audioBoostDb = Settings.AudioBoostDb };
     private async Task InitializePlayerAsync()
     {
         Video.Visibility = Visibility.Visible;
@@ -416,6 +417,7 @@ public partial class MainWindow : Window
         AddMenu(menu, "화면 저장", () => Run(TakeScreenshotAsync), "Ctrl+S");
         AddMenu(menu, "자막별 일괄 캡처…", ShowSubtitleCapture, "Ctrl+Shift+S");
         AddMenu(menu, "UI 선택…", ShowDesignPicker);
+        AddMenu(menu, "음량 증폭…", ShowBoostMenu);
         menu.Items.Add(new Separator());
         AddMenu(menu, "다음 영상 자동 재생 · 목록 순서", () => { PlaylistPanel.Visibility = Visibility.Visible; });
         AddToggle(menu, "현재 영상 반복", _player?.Text("loop-file") == "inf", () => { if (_player != null) Run(() => _player.SetAsync("loop-file", _player.Text("loop-file") == "inf" ? "no" : "inf")); });

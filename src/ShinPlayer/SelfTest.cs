@@ -61,6 +61,14 @@ public partial class MainWindow
             await WarmupAsync();
             return new { engineReady = _player!.Flag("vo-configured") };
         });
+        await Test("audio-boost-restored-at-engine-startup", async () =>
+        {
+            if (Settings.AudioBoostDb != 6 || _player!.AudioBoostDb != 6 || !_player.ReadProperty("af").Contains(AudioBoost.Label))
+                throw new Exception("Saved boost was not restored when the engine started");
+            await SetAudioBoostAsync(0);
+            if (_player.ReadProperty("af").Contains(AudioBoost.Label)) throw new Exception("Disabling idle boost left its filter attached");
+            return new { restoredDb = 6, disabledWhileIdle = true };
+        });
         await Test("h264-aac-unicode-path-real-decoding", async () =>
         {
             await OpenFilesAsync(new[] { fixture });
@@ -387,6 +395,7 @@ public partial class MainWindow
         await RunSeekCoordinateTestsAsync(Test, fixtureDirectory);
         await RunCaptureTestsAsync(Test, fixtureDirectory, outputDirectory);
         await RunDesignTestsAsync(Test, fixtureDirectory, outputDirectory);
+        await RunAudioTestsAsync(Test, fixtureDirectory, outputDirectory);
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "complete.txt"), failures == 0 ? "PASS" : $"FAIL {failures}");
         Environment.ExitCode = failures == 0 ? 0 : 1;
     }

@@ -16,6 +16,7 @@ public sealed record MediaItem(string Path)
 public sealed class PlayerSettings
 {
     public double Volume { get; set; } = 70;
+    public double AudioBoostDb { get; set; }
     public double Speed { get; set; } = 1;
     public bool Muted { get; set; }
     public bool Resume { get; set; } = true;
@@ -44,6 +45,7 @@ public sealed class PlayerSettings
     {
         UiDesign = UiDesigns.Get(UiDesign).Id;
         Volume = Clamp(Volume, 0, 100, 70);
+        AudioBoostDb = AudioBoost.Normalize(AudioBoostDb);
         Speed = Clamp(Speed, .25, 8, 1);
         Width = Clamp(Width, 820, 3840, 1180);
         Height = Clamp(Height, 560, 2160, 760);

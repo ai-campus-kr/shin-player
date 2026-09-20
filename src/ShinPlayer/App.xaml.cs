@@ -34,7 +34,8 @@ public partial class App : Application
         DispatcherUnhandledException += (_, evt) => { Log(evt.Exception.ToString()); MessageBox.Show(evt.Exception.Message, "신플레이어", MessageBoxButton.OK, MessageBoxImage.Error); evt.Handled = true; };
         IsTest = e.Args.Contains("--self-test");
         IsDiagnosticSession = e.Args.Contains("--diagnostic-session");
-        Settings = IsTest || IsDiagnosticSession ? new PlayerSettings { Resume = false, Muted = true } : PlayerSettings.Load();
+        // A saved boost value in the isolated runner also exercises engine startup restoration.
+        Settings = IsTest || IsDiagnosticSession ? new PlayerSettings { Resume = false, Muted = true, AudioBoostDb = IsTest ? 6 : 0 } : PlayerSettings.Load();
         UiDesigns.ApplyPalette(UiDesigns.Get(Settings.UiDesign));
         if (!IsTest)
         {

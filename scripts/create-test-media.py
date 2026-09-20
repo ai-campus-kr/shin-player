@@ -2,10 +2,23 @@
 from pathlib import Path
 import subprocess
 import sys
+import math
+import struct
+import wave
 
 root = Path(__file__).resolve().parents[1]
 out = root / 'artifacts' / 'fixtures'
 out.mkdir(parents=True, exist_ok=True)
+
+# Known-amplitude tones for gain/limiter measurements inside the actual mpv pipeline.
+# Self-tests mute the audio output; no user recording or audible listening test is used.
+for name, amplitude in [('boost-quiet.wav', .025), ('boost-loud.wav', .8)]:
+    target = out / name
+    if not target.exists():
+        second = b''.join(struct.pack('<h', round(amplitude * 32767 * math.sin(2 * math.pi * 440 * n / 48000))) for n in range(48000))
+        with wave.open(str(target), 'wb') as wav:
+            wav.setparams((1, 2, 48000, 0, 'NONE', 'not compressed'))
+            wav.writeframes(second * 30)
 
 def run(*args):
     subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', *map(str, args)], check=True)

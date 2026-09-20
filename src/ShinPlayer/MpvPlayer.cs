@@ -16,6 +16,8 @@ public sealed class MpvPlayer : IDisposable
     private IntPtr _handle;
     private readonly Thread _events;
     private readonly object _lifetime = new();
+    private readonly SemaphoreSlim _audioChanges = new(1, 1);
+    internal double AudioBoostDb { get; private set; }
     private volatile bool _stopping;
     private long _requestId;
     private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _pending = new();
@@ -60,6 +62,9 @@ public sealed class MpvPlayer : IDisposable
             Option("cursor-autohide", "1000");
             Option("audio-pitch-correction", settings.PitchCorrection ? "yes" : "no");
             Option("volume", settings.Volume.ToString(CultureInfo.InvariantCulture));
+            Option("volume-max", "100");
+            AudioBoostDb = AudioBoost.Normalize(settings.AudioBoostDb);
+            if (AudioBoostDb > 0) Option("af", AudioBoost.Filter(AudioBoostDb));
             Option("mute", settings.Muted ? "yes" : "no");
             Option("speed", (settings.RememberSpeed ? settings.Speed : 1).ToString(CultureInfo.InvariantCulture));
             Option("sub-auto", "fuzzy");
@@ -112,6 +117,27 @@ public sealed class MpvPlayer : IDisposable
         finally { Native.mpv_free(ptr); }
     }
     public Task SetAsync(string name, double value) => CommandAsync("set", name, value.ToString("0.#####", CultureInfo.InvariantCulture));
+    internal string ReadProperty(string name)
+    {
+        lock (_lifetime)
+        {
+            if (_stopping || _handle == IntPtr.Zero) throw new ObjectDisposedException(nameof(MpvPlayer));
+            return GetString(name);
+        }
+    }
+    internal async Task SetAudioBoostAsync(double db)
+    {
+        db = AudioBoost.Normalize(db);
+        await _audioChanges.WaitAsync();
+        try
+        {
+            if (Math.Abs(db - AudioBoostDb) < .01) return;
+            if (db > 0) await CommandAsync("af", "add", AudioBoost.Filter(db));
+            else await CommandAsync("af", "remove", "@" + AudioBoost.Label);
+            AudioBoostDb = db;
+        }
+        finally { _audioChanges.Release(); }
+    }
     public Task SetAsync(string name, bool value) => CommandAsync("set", name, value ? "yes" : "no");
     public Task SetAsync(string name, string value) => CommandAsync("set", name, value);
     public Task CommandAsync(params string[] args)
