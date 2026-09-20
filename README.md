@@ -99,4 +99,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 - [Microsoft 기본 앱 등록 및 설정](https://learn.microsoft.com/en-us/windows/apps/develop/windows-integration/default-apps-platform)
 - [앱별 기본 앱 설정 URI](https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-default-apps-settings)
 
-신플레이어 소스: GPL-3.0-or-later. 엔진과 런타임의 출처는 `THIRD-PARTY-NOTICES.md`를 참조하세요.
+신플레이어 자체 소스는 [MIT 라이선스](LICENSE)로 공개합니다. Copyright (c) 2026 한국AI교육진흥원. mpv·FFmpeg·.NET 등 외부 구성요소에는 각자의 라이선스가 적용됩니다. 엔진과 런타임의 출처 및 배포 구분은 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)를 참조하세요.

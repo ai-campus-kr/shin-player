@@ -1,5 +1,7 @@
 # Third-party components
 
+The original ShinPlayer application source is licensed under the MIT License in `LICENSE`, Copyright (c) 2026 한국AI교육진흥원. This does not relicense mpv, FFmpeg, .NET, or any other third-party component. Their own license terms and notices continue to apply.
+
 ## mpv / libmpv / FFmpeg and bundled codec libraries
 
 - mpv source: https://github.com/mpv-player/mpv

@@ -468,7 +468,7 @@ public partial class MainWindow : Window
         MessageBox.Show(this,
             "신플레이어 0.1.1\n\n" +
             "Space     재생 / 일시정지\n← / →     5초 이동 (Shift: 30초)\n↑ / ↓      음량 조절\n[ / ]        0.25배속 조절 (Shift: 0.05배)\nR / Backspace    1배속으로 복귀\nF / F11    전체화면 (Esc: 해제)\nM            음소거\nA             구간 반복 시작 → 끝 → 해제\n. / ,         다음 / 이전 프레임\nS             자막 표시 / 숨기기\nN / Shift+N    다음 / 이전 영상\nCtrl+O     영상 열기\nCtrl+L      재생목록\nCtrl+S      화면 저장\nCtrl+Q     완전히 종료\n\n" +
-            "창을 닫으면 재생을 멈추고 트레이에서 대기합니다.\n트레이 아이콘을 더블클릭하면 다시 열립니다.\n\n" + (_player?.Version ?? "mpv") + " · .NET 8 / Windows x64\nGPL-3.0-or-later · 소스와 라이선스는 설치 폴더에 포함되어 있습니다.",
+            "창을 닫으면 재생을 멈추고 트레이에서 대기합니다.\n트레이 아이콘을 더블클릭하면 다시 열립니다.\n\n" + (_player?.Version ?? "mpv") + " · .NET 8 / Windows x64\n신플레이어 소스: MIT · 한국AI교육진흥원\n외부 구성요소에는 별도 라이선스가 적용됩니다.\n소스와 라이선스는 설치 폴더에 포함되어 있습니다.",
             "신플레이어 · 단축키", MessageBoxButton.OK, MessageBoxImage.Information);
     }
     private void HandleAction(string action)
