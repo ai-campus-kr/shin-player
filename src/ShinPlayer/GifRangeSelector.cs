@@ -30,9 +30,9 @@ internal sealed class GifRangeSelector : Canvas
     {
         Height = 84; Background = Brushes.Transparent;
         _track.SetResourceReference(Border.BackgroundProperty, "Raised"); Children.Add(_track);
-        Selection = MakeThumb(Part.Selection, "GIF 선택 구간 이동", "↔", "Selected", "Ink", Cursors.SizeAll);
-        StartHandle = MakeThumb(Part.Start, "GIF 시작 시간", "Ⅰ", "Accent", "AccentInk", Cursors.SizeWE);
-        EndHandle = MakeThumb(Part.End, "GIF 끝 시간", "Ⅰ", "Accent", "AccentInk", Cursors.SizeWE);
+        Selection = MakeThumb(Part.Selection, "GIF 선택 구간 이동", "↔", "GifRangeFill", "GifRangeInk", Cursors.SizeAll);
+        StartHandle = MakeThumb(Part.Start, "GIF 시작 시간", "Ⅰ", "GifRangeAccent", "GifRangeAccentInk", Cursors.SizeWE);
+        EndHandle = MakeThumb(Part.End, "GIF 끝 시간", "Ⅰ", "GifRangeAccent", "GifRangeAccentInk", Cursors.SizeWE);
         foreach (var thumb in new[] { Selection, StartHandle, EndHandle }) Children.Add(thumb);
         for (int i = 0; i < _ticks.Length; i++)
         {
@@ -61,7 +61,7 @@ internal sealed class GifRangeSelector : Canvas
         var border = new FrameworkElementFactory(typeof(Border));
         border.SetValue(Border.CornerRadiusProperty, new CornerRadius(4));
         border.SetResourceReference(Border.BackgroundProperty, fill);
-        border.SetResourceReference(Border.BorderBrushProperty, "Accent");
+        border.SetResourceReference(Border.BorderBrushProperty, "GifRangeAccent");
         border.SetValue(Border.BorderThicknessProperty, new Thickness(1));
         var text = new FrameworkElementFactory(typeof(TextBlock));
         text.SetValue(TextBlock.TextProperty, grip); text.SetValue(TextBlock.FontSizeProperty, 16.0);
@@ -74,7 +74,7 @@ internal sealed class GifRangeSelector : Canvas
         var focusBorder = new FrameworkElementFactory(typeof(Border));
         focusBorder.SetValue(Border.BorderThicknessProperty, new Thickness(2));
         focusBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(6));
-        focusBorder.SetValue(MarginProperty, new Thickness(-4)); focusBorder.SetResourceReference(Border.BorderBrushProperty, "Accent");
+        focusBorder.SetValue(MarginProperty, new Thickness(-4)); focusBorder.SetResourceReference(Border.BorderBrushProperty, "GifRangeAccent");
         var focusStyle = new Style(typeof(Control));
         focusStyle.Setters.Add(new Setter(Control.TemplateProperty, new ControlTemplate(typeof(Control)) { VisualTree = focusBorder }));
         style.Setters.Add(new Setter(FocusVisualStyleProperty, focusStyle));

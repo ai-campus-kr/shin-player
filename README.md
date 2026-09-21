@@ -42,13 +42,13 @@
 
 유튜브 캡처 중에는 창을 열어 두고 재생 위치·창 크기를 바꾸지 마세요. 광고, 실시간 방송, 보호된 영상은 지원하지 않습니다. 실제 부드러움은 PC의 화면 캡처 속도에 따라 달라집니다.
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.5/docs/screenshots/v0.6.0-beta.5/01-gif-range.png" width="620" alt="신플레이어 GIF 구간 선택: 드래그 손잡이, 선택 영역 이동, 확대와 시간 입력 연동"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="신플레이어 GIF 구간 선택: 드래그 손잡이, 선택 영역 이동, 확대와 시간 입력 연동"></p>
 
 *합성 테스트 영상으로 촬영한 실제 앱 화면입니다.*
 
 ## 빠른 시작
 
-1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.5)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
+1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.6)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
 2. `Install.cmd`를 실행합니다. 관리자 권한과 별도 .NET 설치는 필요하지 않습니다.
 3. 시작 메뉴의 **신플레이어**를 열고 영상 파일을 끌어놓거나 **영상 열기**를 누릅니다.
 
@@ -216,7 +216,7 @@ DRM으로 보호된 영상, 손상된 파일, 특수한 독점 형식까지 모�
 
 ## 유튜브와 영상 AI 채팅 — 0.6 베타
 
-**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [베타 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.5)
+**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [베타 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.6)
 
 1. 항상 표시되는 상단 **주소창**에 유튜브 주소를 입력하고 **Enter** 또는 **→**를 누릅니다. **Alt+D / Ctrl+U**로 주소를 선택할 수 있으며, `youtube.com`처럼 `https://`를 생략해도 됩니다. 앱 내부의 **Edge WebView2 브라우저**로 일반 유튜브 페이지를 엽니다.
 2. 유튜브 설명의 **더보기 → 스크립트 표시**를 연 뒤 영상 옆 **채팅 패널 → 자막 불러오기**를 누릅니다. 넓은 창에서는 오른쪽, 좁은 창에서는 아래쪽에 표시됩니다. **채팅 배치**에서 위치를 직접 선택할 수도 있습니다.
@@ -320,4 +320,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.5) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.6) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)

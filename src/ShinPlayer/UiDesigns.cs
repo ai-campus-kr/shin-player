@@ -38,7 +38,11 @@ internal static class UiDesigns
         foreach (var (key, color) in new[] {
             ("Bg", design.Bg), ("Panel", design.Panel), ("Raised", design.Raised), ("Line", design.Line),
             ("Ink", design.Ink), ("Muted", design.Muted), ("Accent", design.Accent), ("AccentInk", design.AccentInk),
-            ("StageBrush", design.Stage), ("Selected", design.Selected), ("HoverBrush", design.Ink) })
+            ("StageBrush", design.Stage), ("Selected", design.Selected), ("HoverBrush", design.Ink),
+            ("GifRangeAccent", design.Id == "minimal" ? "#66C9BB" : design.Accent),
+            ("GifRangeFill", design.Id == "minimal" ? "#244C48" : design.Selected),
+            ("GifRangeInk", design.Id == "minimal" ? "#CEF3EB" : design.Ink),
+            ("GifRangeAccentInk", design.Id == "minimal" ? "#12332D" : design.AccentInk) })
             resources[key] = Brush(color);
         resources["ButtonRadius"] = new CornerRadius(design.Radius);
     }

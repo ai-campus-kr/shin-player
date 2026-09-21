@@ -42,13 +42,13 @@
 
 录制期间请保持 YouTube 窗口显示，不要跳转或调整窗口大小。不支持广告、直播和受保护的视频。实际流畅度取决于电脑的截图速度。
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.5/docs/screenshots/v0.6.0-beta.5/01-gif-range.png" width="620" alt="实际 GIF 界面：拖动手柄选择区间、移动选区、放大与时间输入同步"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="实际 GIF 界面：拖动手柄选择区间、移动选区、放大与时间输入同步"></p>
 
 *使用合成测试视频拍摄的实际应用界面。*
 
 ## 快速开始
 
-1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.5)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
+1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.6)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
 2. 运行 **`Install.cmd`**。无需管理员权限，也无需单独安装 .NET。
 3. 在开始菜单打开 **신플레이어**，将视频拖入窗口，或点击 **영상 열기**（打开视频）。
 
@@ -201,7 +201,7 @@
 
 ## YouTube 与视频 AI 聊天 — 0.6 测试版
 
-**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.5)
+**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.6)
 
 1. 在顶部常驻的 **地址栏** 输入 YouTube 地址，然后按 **Enter** 或 **→**。按 **Alt+D / Ctrl+U** 可选中地址。可以省略 `https://`，例如直接输入 `youtube.com`。应用内的 **Edge WebView2** 会打开正常的 YouTube 页面。
 2. 打开 YouTube 的 **更多 → 显示转录文稿**，然后点击视频旁 **聊天面板 → 자막 불러오기**（加载字幕）。宽窗口放在右侧，窄窗口放在下方。也可通过 **채팅 배치**（聊天布局）手动选择位置。
@@ -305,4 +305,4 @@ Shin Player 自身源码采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 한
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.5) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.6) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)

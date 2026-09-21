@@ -42,13 +42,13 @@ Click **GIF** in the local player or YouTube window. **Drag the two timeline han
 
 Keep the YouTube window visible and avoid seeking or resizing during capture. Ads, live streams and protected videos are unsupported. Actual smoothness depends on the PC's capture speed.
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.5/docs/screenshots/v0.6.0-beta.5/01-gif-range.png" width="620" alt="Actual GIF dialog: draggable range handles, segment movement, zoom and synchronized time fields"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="Actual GIF dialog: draggable range handles, segment movement, zoom and synchronized time fields"></p>
 
 *Actual app screenshot using a synthetic test video.*
 
 ## Quick start
 
-1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.5)** and extract the entire archive.
+1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.6)** and extract the entire archive.
 2. Run **`Install.cmd`**. No administrator privileges or separate .NET installation are required.
 3. Open **신플레이어** from the Start menu, then drop a video onto it or click **영상 열기** (Open video).
 
@@ -201,7 +201,7 @@ Playback is not guaranteed for DRM-protected videos, damaged files, or specializ
 
 ## YouTube and video chat — 0.6 beta
 
-**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.5)
+**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.6)
 
 1. Enter a YouTube address in the always-visible top **address bar**, then press **Enter** or **→**. **Alt+D / Ctrl+U** selects the address. You can omit `https://`, for example `youtube.com`. The app opens the normal YouTube page in **Edge WebView2**.
 2. Open YouTube's **More → Show transcript**, then choose **자막 불러오기** (Load subtitles) in the **docked chat panel**. It appears on the right in wide windows and below in narrow windows. **채팅 배치** (Chat placement) also lets you choose the position.
@@ -305,4 +305,4 @@ Shin Player’s own source is released under the [MIT license](LICENSE). Copyrig
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.5) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.6) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)
