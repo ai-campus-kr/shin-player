@@ -24,15 +24,16 @@ internal sealed class GifRangeSelector : Canvas
     internal double End { get; private set; }
     internal double ViewStart { get; private set; }
     internal double ViewEnd { get; private set; }
+    internal double MaximumLength { get; set; } = 3600;
     internal event Action? RangeChanged;
 
-    internal GifRangeSelector()
+    internal GifRangeSelector(string purpose = "GIF")
     {
         Height = 84; Background = Brushes.Transparent;
         _track.SetResourceReference(Border.BackgroundProperty, "Raised"); Children.Add(_track);
-        Selection = MakeThumb(Part.Selection, "GIF 선택 구간 이동", "↔", "GifRangeFill", "GifRangeInk", Cursors.SizeAll);
-        StartHandle = MakeThumb(Part.Start, "GIF 시작 시간", "Ⅰ", "GifRangeAccent", "GifRangeAccentInk", Cursors.SizeWE);
-        EndHandle = MakeThumb(Part.End, "GIF 끝 시간", "Ⅰ", "GifRangeAccent", "GifRangeAccentInk", Cursors.SizeWE);
+        Selection = MakeThumb(Part.Selection, purpose + " 선택 구간 이동", "↔", "GifRangeFill", "GifRangeInk", Cursors.SizeAll);
+        StartHandle = MakeThumb(Part.Start, purpose + " 시작 시간", "Ⅰ", "GifRangeAccent", "GifRangeAccentInk", Cursors.SizeWE);
+        EndHandle = MakeThumb(Part.End, purpose + " 끝 시간", "Ⅰ", "GifRangeAccent", "GifRangeAccentInk", Cursors.SizeWE);
         foreach (var thumb in new[] { Selection, StartHandle, EndHandle }) Children.Add(thumb);
         for (int i = 0; i < _ticks.Length; i++)
         {
@@ -144,12 +145,12 @@ internal sealed class GifRangeSelector : Canvas
         value = Math.Round(value, 3);
         if (part == Part.Start)
         {
-            double lower = Math.Max(ViewStart, End - 3600);
+            double lower = Math.Max(ViewStart, End - MaximumLength);
             Start = Math.Clamp(value, lower, Math.Max(lower, End - .2));
         }
         else
         {
-            double upper = Math.Min(ViewEnd, Start + 3600);
+            double upper = Math.Min(ViewEnd, Start + MaximumLength);
             End = Math.Clamp(value, Math.Min(upper, Start + .2), upper);
         }
         Changed();

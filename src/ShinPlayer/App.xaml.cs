@@ -59,7 +59,7 @@ public partial class App : Application
             else
             {
                 int i = Array.IndexOf(e.Args, "--self-test");
-                await _window!.RunSelfTestAsync(e.Args[i + 1], e.Args[i + 2]);
+                await _window!.RunSelfTestAsync(e.Args[i + 1], e.Args[i + 2], e.Args.Contains("--shorts-only"));
             }
             Quit();
         }
@@ -115,6 +115,7 @@ public partial class App : Application
         if (args.Contains("--default-apps")) WindowsIntegration.OpenDefaults();
         var files = args.Where(x => !x.StartsWith("--", StringComparison.Ordinal)).ToArray();
         if (files.Length > 0) await _window!.OpenFilesAsync(files);
+        if (args.Contains("--shorts")) _window!.ShowShorts();
     }
     public void ShowPlayer()
     {
@@ -171,6 +172,7 @@ public partial class App : Application
         if (IsExiting) return;
         IsExiting = true;
         if (_window != null) await _window.StopGifAsync();
+        if (_window != null) await _window.StopShortsAsync();
         _window?.PrepareExit();
         SaveSettings();
         _window?.Close();

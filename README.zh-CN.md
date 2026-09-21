@@ -24,6 +24,23 @@
 
 [快速开始](#快速开始) · [音量增强](#让小音量更响亮) · [字幕截图](#每条字幕一张图片) · [界面选择](#四种界面随心选择) · [快捷键](#常用快捷键) · [开发与验证](#开发与验证)
 
+## 把选中的片段制作成竖屏短视频
+
+打开本地视频，点击 **쇼츠**（短视频），在播放器内完成选区、竖屏构图、添加文字和保存。
+
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.11/docs/screenshots/v0.6.0-beta.11/01-shorts-editor.png" width="980" alt="实际短视频编辑界面：竖屏画面预览、拖动选区、韩文文字叠加和构图设置"></p>
+
+1. 拖动时间轴两端设置开始和结束位置，拖动中间可移动整个片段。使用 **장면 미리보기**（画面预览）滑块查看选区内的画面。
+2. **세로로 꽉 채우기**（填满竖屏）模式支持拖动画面调整构图；**원본 전체 보이기**（显示完整原画面）模式添加黑边，保留整个画面。
+3. 在 **올릴 문구**（叠加文字）中输入最多 **160字、4行**。可调整字号，选择白色、黄色或薄荷色及深色背景，并在预览中拖动文字定位。
+4. 点击 **쇼츠 저장**（保存短视频），导出 **9:16、1080×1920 / 720×1280、30fps 的 H.264 MP4**。取消 **원본 소리 포함** 可导出无声视频。
+
+- 片段长度 **0.2秒至3分钟**。保存至 Windows **视频 → 신플레이어 쇼츠**，不会覆盖原视频或已有的导出文件。
+- **仅支持本地视频**。无需字幕或 API 密钥，不消耗 GPT Token，原视频的播放位置和速度保持不变。
+- 支持四种界面。取消任务或关闭编辑窗口时会停止转换并清理未完成文件。
+
+**[查看此编辑器实际导出的 MP4](https://github.com/ai-campus-kr/shin-player/releases/download/v0.6.0-beta.11/ShinPlayer-shorts-demo.mp4)** · 截图和成品使用原创合成演示视频。
+
 ## 把精彩片段变成 GIF
 
 在本地播放器中打开视频文件，点击 **GIF**，**拖动时间轴两端的手柄**选择片段，再点击 **GIF 만들기**（制作 GIF）。拖动中间的选中区域，可在保持时长的同时移动整个片段。
@@ -45,7 +62,7 @@
 
 ## 快速开始
 
-1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
+1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
 2. 运行 **`Install.cmd`**。无需管理员权限，也无需单独安装 .NET。
 3. 在开始菜单打开 **신플레이어**，将视频拖入窗口，或点击 **영상 열기**（打开视频）。
 
@@ -198,7 +215,7 @@
 
 ## YouTube 与视频 AI 聊天 — 0.6 测试版
 
-**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)
+**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)
 
 1. 在顶部常驻的 **地址栏** 输入 YouTube 地址，然后按 **Enter** 或 **→**。按 **Alt+D / Ctrl+U** 可选中地址。可以省略 `https://`，例如直接输入 `youtube.com`。应用内的 **Edge WebView2** 会打开正常的 YouTube 页面。
 2. **打开视频后自动加载字幕。** 没有字幕时显示 **“자막이 없는 영상입니다”**（该视频没有字幕）。宽窗口的聊天面板在右侧，窄窗口在下方，也可通过 **채팅 배치** 选择位置。 同时支持旧版字幕面板及新版 **视频信息 → 字幕** 页面。
@@ -303,4 +320,4 @@ Shin Player 自身源码采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 한
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)

@@ -53,6 +53,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        SizeChanged += (_, _) => BrandTitle.Visibility = ActualWidth < 940 ? Visibility.Collapsed : Visibility.Visible;
         // Own the complete gesture instead of combining Slider/Thumb defaults
         // with a second coordinate conversion during mouse capture.
         SeekBar.IsMoveToPointEnabled = false;
@@ -422,6 +423,7 @@ public partial class MainWindow : Window
         AddMenu(menu, "화면 저장", () => Run(TakeScreenshotAsync), "Ctrl+S");
         AddMenu(menu, "자막별 일괄 캡처…", ShowSubtitleCapture, "Ctrl+Shift+S");
         AddMenu(menu, "구간 GIF 만들기…", ShowGif);
+        AddMenu(menu, "쇼츠 만들기…", ShowShorts);
         AddMenu(menu, "UI 선택…", ShowDesignPicker);
         AddMenu(menu, "음량 증폭…", ShowBoostMenu);
         menu.Items.Add(new Separator());
@@ -700,6 +702,8 @@ public partial class MainWindow : Window
     public async Task HideToTrayAsync()
     {
         _gifWindow?.Close();
+        await StopShortsAsync();
+        _shortsWindow?.Close();
         _youtubeWindow?.Close();
         _videoChat?.Close();
         RememberCurrent(); _app.SaveSettings();
@@ -735,6 +739,7 @@ public partial class MainWindow : Window
     public void PrepareExit()
     {
         _gifWindow?.Cancel();
+        _shortsWindow?.Cancel();
         _youtubeWindow?.Close();
         _videoChat?.Close();
         _captureWindow?.Cancel();

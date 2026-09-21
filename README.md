@@ -24,6 +24,23 @@
 
 [빠른 시작](#빠른-시작) · [음량 증폭](#작은-소리는-더-크게) · [자막 캡처](#자막마다-사진-한-장) · [UI 선택](#취향대로-고르는-네-가지-ui) · [단축키](#자주-쓰는-단축키) · [개발 및 검증](#개발-및-검증)
 
+## 원하는 구간을 세로 쇼츠로
+
+로컬 영상을 열고 상단 **쇼츠**를 누르세요. **구간 선택 → 세로 구도 → 문구 추가 → 쇼츠 저장**까지 플레이어 안에서 끝납니다.
+
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.11/docs/screenshots/v0.6.0-beta.11/01-shorts-editor.png" width="980" alt="실제 쇼츠 편집창: 세로 장면 미리보기, 드래그 구간 선택, 한글 문구와 화면 맞춤"></p>
+
+1. 타임라인 양 끝을 드래그해 시작·끝을 정합니다. 가운데를 끌면 구간 전체가 이동합니다. 왼쪽 **장면 미리보기** 슬라이더로 선택한 구간의 화면을 확인하세요.
+2. **세로로 꽉 채우기**에서는 영상을 드래그해 구도를 조정합니다. **원본 전체 보이기**는 화면을 자르지 않고 검은 여백을 넣습니다.
+3. **올릴 문구**에 글자를 입력합니다. 최대 **160자·4줄**, 크기·흰색/노랑/민트·어두운 배경을 선택하고, 미리보기에서 문구를 드래그해 위치를 잡습니다.
+4. **쇼츠 저장**을 누릅니다. **9:16**, **1080×1920 / 720×1280**, **30fps H.264 MP4**로 저장하며 **원본 소리 포함**을 끄면 무음으로 만듭니다.
+
+- 구간 길이는 **0.2초~3분**. Windows **동영상 → 신플레이어 쇼츠**에 저장합니다. 원본과 기존 결과 파일을 덮어쓰지 않습니다.
+- **로컬 영상 전용**이며 자막이나 API 키가 필요하지 않습니다. GPT 토큰을 사용하지 않습니다. 재생 중인 원본의 위치·배속은 그대로 유지합니다.
+- 네 가지 UI를 지원하고, 작업 취소나 창 닫기 시 변환을 중단하고 미완성 파일을 정리합니다.
+
+**[이 화면에서 실제로 저장한 MP4 보기](https://github.com/ai-campus-kr/shin-player/releases/download/v0.6.0-beta.11/ShinPlayer-shorts-demo.mp4)** · 기능 설명용 합성 영상으로 검증한 실제 앱 화면과 결과입니다.
+
 ## 마음에 드는 구간을 GIF로
 
 로컬 영상 파일을 열고 **GIF** 버튼으로 움직이는 짤을 만드세요. **타임라인의 양 끝 손잡이를 드래그**해 구간을 고르고 **GIF 만들기**를 누르면 됩니다. 가운데 선택 영역을 끌면 길이를 유지하며 구간을 옮깁니다.
@@ -45,7 +62,7 @@
 
 ## 빠른 시작
 
-1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
+1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
 2. `Install.cmd`를 실행합니다. 관리자 권한과 별도 .NET 설치는 필요하지 않습니다.
 3. 시작 메뉴의 **신플레이어**를 열고 영상 파일을 끌어놓거나 **영상 열기**를 누릅니다.
 
@@ -213,7 +230,7 @@ DRM으로 보호된 영상, 손상된 파일, 특수한 독점 형식까지 모�
 
 ## 유튜브와 영상 AI 채팅 — 0.6 베타
 
-**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [베타 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)
+**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [베타 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)
 
 1. 항상 표시되는 상단 **주소창**에 유튜브 주소를 입력하고 **Enter** 또는 **→**를 누릅니다. **Alt+D / Ctrl+U**로 주소를 선택할 수 있으며, `youtube.com`처럼 `https://`를 생략해도 됩니다. 앱 내부의 **Edge WebView2 브라우저**로 일반 유튜브 페이지를 엽니다.
 2. **영상을 열면 자막을 자동으로 불러옵니다.** 자막이 없으면 <strong>“자막이 없는 영상입니다”</strong>라고 표시합니다. 채팅은 넓은 창에서 오른쪽, 좁은 창에서 아래쪽에 표시되며 **채팅 배치**에서 위치를 선택할 수 있습니다. 기존 스크립트 창과 새 **동영상 정보 → 스크립트** 화면을 모두 지원합니다.
@@ -318,4 +335,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)

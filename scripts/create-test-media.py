@@ -70,4 +70,23 @@ if not long_gif_video.exists():
         '-f', 'lavfi', '-i', 'color=blue:size=640x360:rate=2:duration=200',
         '-filter_complex', '[0:v][1:v][2:v]concat=n=3:v=1:a=0[v]',
         '-map', '[v]', '-c:v', 'libx264', '-preset', 'ultrafast', '-g', '2', long_gif_video)
+# Portrait editor: known left/center/right colors, a timed marker, and audible samples
+# in the file (the app's isolated tests keep playback muted).
+shorts = out / "쇼츠 '테스트 [한글].mp4"
+if not shorts.exists():
+    run('-f', 'lavfi', '-i', 'color=black:size=960x540:rate=30:duration=8',
+        '-f', 'lavfi', '-i', 'sine=frequency=660:sample_rate=48000:duration=8',
+        '-vf', "drawbox=x=0:y=0:w=320:h=540:color=red:t=fill,drawbox=x=320:y=0:w=320:h=540:color=lime:t=fill,drawbox=x=640:y=0:w=320:h=540:color=blue:t=fill,drawbox=x=400:y=20:w=160:h=50:color=white:t=fill:enable='lt(t,4)',drawbox=x=400:y=20:w=160:h=50:color=yellow:t=fill:enable='gte(t,4)'",
+        '-c:v', 'libx264', '-preset', 'ultrafast', '-g', '30', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', shorts)
+rotated = out / 'shorts-rotated-90.mp4'
+if not rotated.exists():
+    run('-display_rotation:v:0', '90', '-i', shorts, '-c', 'copy', rotated)
+delayed = out / 'shorts-delayed-audio.mp4'
+if not delayed.exists():
+    run('-i', shorts, '-itsoffset', '1', '-i', shorts, '-map', '0:v:0', '-map', '1:a:0', '-t', '8', '-c', 'copy', delayed)
+showcase = out / '신플레이어 쇼츠 데모.mp4'
+if not showcase.exists():
+    run('-loop', '1', '-framerate', '30', '-i', root / 'scripts' / 'fixtures' / 'shorts-demo.png',
+        '-t', '8', '-vf', 'fade=t=in:st=0:d=0.4,fade=t=out:st=7.6:d=0.4',
+        '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', showcase)
 print(out)

@@ -24,6 +24,23 @@ A Windows video player with fine speed control, audio boost, and batch frame cap
 
 [Quick start](#quick-start) · [Audio boost](#make-quiet-audio-louder) · [Subtitle capture](#one-frame-for-every-subtitle) · [UI styles](#four-ways-to-make-it-yours) · [Shortcuts](#everyday-shortcuts) · [Development](#development-and-verification)
 
+## Turn a selected moment into a vertical short
+
+Open a local video and click **쇼츠** (Shorts). Choose a range, frame the vertical shot, add your own text, and save—all inside the player.
+
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.11/docs/screenshots/v0.6.0-beta.11/01-shorts-editor.png" width="980" alt="Actual Shorts editor with a portrait frame preview, draggable range, Korean text overlay, and framing controls"></p>
+
+1. Drag either timeline handle to set the start and end. Drag the middle to move the whole range. Use **장면 미리보기** (Frame preview) to inspect frames within it.
+2. Choose **세로로 꽉 채우기** (Fill portrait) and drag the image to frame your subject, or **원본 전체 보이기** (Show entire frame) to keep the whole picture with black padding.
+3. Enter **올릴 문구** (Overlay text): up to **160 characters and 4 lines**. Adjust size, white/yellow/mint text, and the dark background. Drag the text on the preview to position it.
+4. Click **쇼츠 저장** (Save short). Export **9:16 H.264 MP4**, **1080×1920 or 720×1280**, at **30fps**. Uncheck **원본 소리 포함** to export without audio.
+
+- Select **0.2 seconds–3 minutes**. Files go to Windows **Videos → 신플레이어 쇼츠**. Source files and existing exports are never overwritten.
+- **Local videos only.** No subtitles, API key, or GPT tokens are needed. The original player's position and speed stay unchanged.
+- All four UI styles are supported. Cancelling or closing the editor stops the encoder and removes unfinished files.
+
+**[Watch the MP4 actually exported from this editor](https://github.com/ai-campus-kr/shin-player/releases/download/v0.6.0-beta.11/ShinPlayer-shorts-demo.mp4)** · The screenshot and output use an original synthetic demonstration video.
+
 ## Turn a moment into a GIF
 
 Open a local video file and click **GIF** in the player. **Drag the two timeline handles** to select a segment, then choose **GIF 만들기** (create GIF). Drag the selected area to move the entire segment while preserving its length.
@@ -45,7 +62,7 @@ Open a local video file and click **GIF** in the player. **Drag the two timeline
 
 ## Quick start
 
-1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)** and extract the entire archive.
+1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)** and extract the entire archive.
 2. Run **`Install.cmd`**. No administrator privileges or separate .NET installation are required.
 3. Open **신플레이어** from the Start menu, then drop a video onto it or click **영상 열기** (Open video).
 
@@ -198,7 +215,7 @@ Playback is not guaranteed for DRM-protected videos, damaged files, or specializ
 
 ## YouTube and video chat — 0.6 beta
 
-**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)
+**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)
 
 1. Enter a YouTube address in the always-visible top **address bar**, then press **Enter** or **→**. **Alt+D / Ctrl+U** selects the address. You can omit `https://`, for example `youtube.com`. The app opens the normal YouTube page in **Edge WebView2**.
 2. **Subtitles load automatically when you open a video.** If none are available, the panel shows **“자막이 없는 영상입니다”** (This video has no subtitles). Chat sits on the right in wide windows and below in narrow windows; **채팅 배치** selects its position. Both legacy transcript panels and the newer **Video info → Transcript** view are supported.
@@ -303,4 +320,4 @@ Shin Player’s own source is released under the [MIT license](LICENSE). Copyrig
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)

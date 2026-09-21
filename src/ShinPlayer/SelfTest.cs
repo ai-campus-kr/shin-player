@@ -17,7 +17,7 @@ public partial class MainWindow
 {
     // Isolated opt-in integration runner: the real window, decoder, commands and state.
     // It does not register file associations or read/write the user's playback history.
-    public async Task RunSelfTestAsync(string fixtureDirectory, string outputDirectory)
+    public async Task RunSelfTestAsync(string fixtureDirectory, string outputDirectory, bool shortsOnly = false)
     {
         Directory.CreateDirectory(outputDirectory);
         var results = new List<object>();
@@ -36,6 +36,12 @@ public partial class MainWindow
                 results.Add(new { name, passed = false, elapsedMs = timer.Elapsed.TotalMilliseconds, error = ex.ToString() });
             }
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "results.json"), JsonSerializer.Serialize(new { failures, tests = results }, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        if (shortsOnly)
+        {
+            await RunShortsTestsAsync(Test, fixtureDirectory, outputDirectory);
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "complete.txt"), failures == 0 ? "PASS" : $"FAIL {failures}");
+            Environment.ExitCode = failures == 0 ? 0 : 1; return;
         }
         await Task.Delay(150);
         await Test("empty-window-layout", async () =>
@@ -401,6 +407,7 @@ public partial class MainWindow
         await RunSeekCoordinateTestsAsync(Test, fixtureDirectory);
         await RunCaptureTestsAsync(Test, fixtureDirectory, outputDirectory);
         await RunGifTestsAsync(Test, fixtureDirectory, outputDirectory);
+        await RunShortsTestsAsync(Test, fixtureDirectory, outputDirectory);
         await RunDesignTestsAsync(Test, fixtureDirectory, outputDirectory);
         await RunAudioTestsAsync(Test, fixtureDirectory, outputDirectory);
         await OnlineSelfTest.RunAsync(Test, fixtureDirectory, outputDirectory, this);

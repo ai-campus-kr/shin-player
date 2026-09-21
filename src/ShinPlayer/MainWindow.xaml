@@ -8,7 +8,7 @@
         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" Margin="0,0,25,0">
           <Image Source="Assets/ShinPlayer.png" Width="30" Height="30" Stretch="Uniform" />
-          <TextBlock Text="신플레이어" FontSize="16" FontWeight="SemiBold" Margin="11,0,0,0" />
+          <TextBlock x:Name="BrandTitle" Text="신플레이어" FontSize="16" FontWeight="SemiBold" Margin="11,0,0,0" />
         </StackPanel>
         <TextBlock x:Name="TitleFile" Grid.Column="1" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" FontSize="12" Margin="0,0,15,0" />
         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" shell:WindowChrome.IsHitTestVisibleInChrome="True">
@@ -16,6 +16,7 @@
           <Button x:Name="DesignButton" Content="UI 선택" Click="Design_Click" ToolTip="미니멀 · 스튜디오 · 라이트 · 라임" Margin="0,0,4,0" />
           <Button Content="자막 캡처" Click="Capture_Click" Foreground="{DynamicResource Muted}" ToolTip="자막별 일괄 캡처 · Ctrl+Shift+S" Margin="0,0,4,0" />
           <Button x:Name="GifButton" Content="GIF" Click="Gif_Click" ToolTip="선택 구간을 움직이는 GIF로 저장" Padding="9,8" />
+          <Button x:Name="ShortsButton" Content="쇼츠" Click="Shorts_Click" ToolTip="구간과 문구를 세로 MP4로 저장" Padding="9,8" />
           <Button Click="Open_Click" Background="{DynamicResource Raised}" ToolTip="영상 열기 · Ctrl+O" Padding="13,8" Margin="0,0,8,0"><StackPanel Orientation="Horizontal"><Path Data="M 1,4 L 6,4 L 9,7 L 18,7 L 18,17 L 1,17 Z" Stroke="{DynamicResource Ink}" StrokeThickness="1.4" Width="17" Height="16" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center" /><TextBlock Text="영상 열기" /></StackPanel></Button>
           <Button x:Name="MoreButton" Style="{StaticResource Glyph}" Content="&#xE712;" Click="More_Click" ToolTip="설정 및 메뉴" />
           <Border Width="1" Background="{DynamicResource Line}" Margin="10,9" />
