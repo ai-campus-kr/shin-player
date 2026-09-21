@@ -13,6 +13,8 @@ internal sealed class GifWindow : Window
 {
     private readonly Func<CancellationToken, Task<GifSource>> _load;
     internal readonly TextBox StartTime = new(), EndTime = new();
+    internal readonly TextBox SpeedInput = new() { Text = "1", Width = 72, VerticalContentAlignment = VerticalAlignment.Center };
+    internal readonly TextBlock Estimate = new() { TextWrapping = TextWrapping.Wrap, FontSize = 15, FontWeight = FontWeights.SemiBold, Margin = new(0, 4, 0, 12) };
     private readonly ComboBox _width = new() { ItemsSource = new[] { 360, 480, 720 }, SelectedItem = 480, MinWidth = 100 };
     private readonly ComboBox _fps = new() { ItemsSource = new[] { 10, 12, 15, 20 }, SelectedItem = 12, MinWidth = 100 };
     private readonly StackPanel _fields = new();
@@ -38,7 +40,7 @@ internal sealed class GifWindow : Window
         _load = load;
         Style = (Style)FindResource(typeof(Window));
         Title = "구간 GIF 만들기 · 신플레이어";
-        Width = 620; Height = 560; MinWidth = 540; MinHeight = 520;
+        Width = 660; Height = 640; MinWidth = 560; MinHeight = 580;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var root = new Grid { Margin = new(24) };
         root.RowDefinitions.Add(new() { Height = GridLength.Auto });
@@ -51,11 +53,24 @@ internal sealed class GifWindow : Window
         var body = new StackPanel();
         body.Children.Add(_fields);
         AddTimeRow("시작", StartTime); AddTimeRow("끝", EndTime);
+        var speedRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(0, 0, 0, 10) };
+        speedRow.Children.Add(new TextBlock { Text = "배속", Width = 42 });
+        speedRow.Children.Add(SpeedInput);
+        speedRow.Children.Add(new TextBlock { Text = "×", Margin = new(8, 0, 12, 0) });
+        foreach (double speed in new[] { .5, 1, 2, 5, 10, 20 })
+        {
+            var preset = new Button { Content = $"{speed:0.#}×", Padding = new(8, 6, 8, 6), FontSize = 11, Margin = new(0, 0, 3, 0), ToolTip = $"GIF {speed:0.#}배속" };
+            preset.Click += (_, _) => SpeedInput.Text = GifExport.Number(speed);
+            speedRow.Children.Add(preset);
+        }
+        _fields.Children.Add(speedRow);
+        Estimate.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
+        _fields.Children.Add(Estimate);
         var options = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(0, 12, 0, 10) };
         options.Children.Add(new TextBlock { Text = "최대 크기", Margin = new(0, 0, 10, 0) }); options.Children.Add(_width);
         options.Children.Add(new TextBlock { Text = "px     부드러움", Margin = new(8, 0, 10, 0) }); options.Children.Add(_fps);
         options.Children.Add(new TextBlock { Text = "fps", Margin = new(8, 0, 0, 0) }); _fields.Children.Add(options);
-        var help = new TextBlock { Text = "0.2~30초 · 무음 · 반복 재생 · 자막 없이도 사용 가능\n시간은 01:23.500 또는 초 단위로 입력하세요.", FontSize = 12, TextWrapping = TextWrapping.Wrap };
+        var help = new TextBlock { Text = "배속 직접 입력 0.25~100× · 원본 구간 최대 1시간 · 완성 GIF 0.2초~5분\n예: 10분 ÷ 10배속 = 1분 GIF. 시간은 01:23.500 또는 초로 입력하세요.", FontSize = 12, TextWrapping = TextWrapping.Wrap };
         help.SetResourceReference(TextBlock.ForegroundProperty, "Muted"); body.Children.Add(help);
         body.Children.Add(_status); body.Children.Add(_progress); body.Children.Add(_output);
         _output.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
@@ -72,6 +87,9 @@ internal sealed class GifWindow : Window
         _open.Click += (_, _) => Open(false); _folder.Click += (_, _) => Open(true);
         Closing += OnClosing;
         Closed += (_, _) => { _closed = true; _cancelSource.Cancel(); _cancelSource.Dispose(); };
+        StartTime.TextChanged += (_, _) => RefreshEstimate();
+        EndTime.TextChanged += (_, _) => RefreshEstimate();
+        SpeedInput.TextChanged += (_, _) => RefreshEstimate();
     }
     private void AddTimeRow(string label, TextBox input)
     {
@@ -95,7 +113,7 @@ internal sealed class GifWindow : Window
             StartTime.Text = GifOptions.Time(position); EndTime.Text = GifOptions.Time(Math.Min(_source.Duration, position + 5));
             _title.Text = _source.Title;
             _tools = await CaptureTools.EnsureAsync(new Progress<string>(value => { if (!_closed) _status.Text = value; }), _cancelSource.Token);
-            _status.Text = _source.IsBrowser ? "유튜브 화면을 선택 구간 동안 실시간 캡처합니다. 캡처 중에는 창을 최소화하거나 영상을 조작하지 마세요. 완료 후 원래 재생 상태로 돌아갑니다." : "선택한 구간만 변환합니다. 재생 중인 영상의 위치는 바뀌지 않습니다.";
+            _status.Text = _source.IsBrowser ? "배속은 완성 GIF에 적용합니다. 유튜브 캡처에는 원본 구간 시간만큼 걸립니다. 창을 열어 두세요. 완료 후 원래 재생 상태로 돌아갑니다." : "선택 구간을 지정한 배속으로 변환합니다. 재생 중인 영상의 위치·속도는 바뀌지 않습니다.";
         }
         catch (OperationCanceledException) { _status.Text = "준비를 취소했습니다."; }
         catch (Exception ex) { _status.Text = ex.Message; }
@@ -111,7 +129,7 @@ internal sealed class GifWindow : Window
         if (_busy || _source == null || _tools == null) return;
         try
         {
-            var options = new GifOptions(GifOptions.Parse(StartTime.Text), GifOptions.Parse(EndTime.Text), (int)_width.SelectedItem, (int)_fps.SelectedItem);
+            var options = ReadOptions();
             options.Validate(_source.Duration);
             _cancelSource.Dispose(); _cancelSource = new(); _busy = true;
             _fields.IsEnabled = _start.IsEnabled = _open.IsEnabled = _folder.IsEnabled = false;
@@ -122,18 +140,34 @@ internal sealed class GifWindow : Window
             _output.Text = SavedPath;
             long bytes = new FileInfo(SavedPath).Length;
             string size = bytes < 1048576 ? $"{Math.Max(1, bytes / 1024.0):0.#} KB" : $"{bytes / 1048576.0:0.##} MB";
-            _status.Text = $"저장 완료 · {options.Length:0.##}초 · {size}";
+            _status.Text = $"저장 완료 · 원본 {GifOptions.DurationText(options.Length)} → GIF {GifOptions.DurationText(options.OutputLength)} · {options.Speed:0.###}× · {size}";
         }
         catch (OperationCanceledException) { _status.Text = "취소했습니다. 미완성 GIF는 저장하지 않았습니다."; }
         catch (Exception ex) { _status.Text = ex.Message; App.Log("GIF: " + ex.Message); }
         finally { Finish(); }
     }
     internal void Cancel() { if (_busy && !_closed) { _cancelSource.Cancel(); _status.Text = "취소하는 중…"; _cancel.IsEnabled = false; } }
+    private GifOptions ReadOptions() => new(GifOptions.Parse(StartTime.Text), GifOptions.Parse(EndTime.Text), (int)_width.SelectedItem, (int)_fps.SelectedItem, GifOptions.ParseSpeed(SpeedInput.Text));
+    private void RefreshEstimate()
+    {
+        try
+        {
+            var options = ReadOptions();
+            options.Validate(_source?.Duration ?? Math.Max(options.End, .2));
+            Estimate.Text = $"원본 {GifOptions.DurationText(options.Length)} ÷ {options.Speed:0.###}× → GIF {GifOptions.DurationText(options.OutputLength)}";
+            _start.IsEnabled = !_busy && _source != null && _tools != null;
+        }
+        catch (Exception ex) when (ex is FormatException or InvalidOperationException)
+        {
+            Estimate.Text = ex.Message;
+            _start.IsEnabled = false;
+        }
+    }
     internal async Task StopAsync() { Cancel(); await Initialization; await _operation; }
     private void Finish()
     {
         _busy = false; _progress.IsIndeterminate = false; _fields.IsEnabled = true;
-        _start.IsEnabled = _source != null && _tools != null; _cancel.Content = "닫기"; _cancel.IsEnabled = true;
+        RefreshEstimate(); _cancel.Content = "닫기"; _cancel.IsEnabled = true;
         _open.IsEnabled = _folder.IsEnabled = SavedPath != null;
         if (_closeWhenStopped && !_closed) Close();
     }

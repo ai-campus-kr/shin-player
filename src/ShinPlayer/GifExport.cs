@@ -9,14 +9,34 @@ using System.Threading.Tasks;
 
 namespace ShinPlayer;
 
-internal sealed record GifOptions(double Start, double End, int Width, int Fps)
+internal sealed record GifOptions(double Start, double End, int Width, int Fps, double Speed = 1)
 {
     internal double Length => End - Start;
+    internal double OutputLength => Length / Speed;
+    internal int WorkerTimeoutSeconds => (int)Math.Clamp(Math.Ceiling(Length * 2 + 60), 120, 7200);
     internal void Validate(double duration)
     {
-        if (!double.IsFinite(duration) || duration < .2 || !double.IsFinite(Start) || !double.IsFinite(End) || Start < 0 || End > duration + .001 || Length < .2 - .000001 || Length > 30 + .000001)
-            throw new InvalidOperationException("영상 안에서 0.2초~30초 구간을 선택하세요. 끝은 시작보다 뒤여야 합니다.");
+        if (!double.IsFinite(Speed) || Speed < .25 || Speed > 100)
+            throw new InvalidOperationException("GIF 배속은 0.25~100 사이의 숫자로 입력하세요.");
+        if (!double.IsFinite(duration) || duration < .2 || !double.IsFinite(Start) || !double.IsFinite(End) || Start < 0 || End > duration + .001 || Length < .2 - .000001 || Length > 3600 + .000001)
+            throw new InvalidOperationException("영상 안에서 0.2초~1시간 구간을 선택하세요. 끝은 시작보다 뒤여야 합니다.");
+        if (OutputLength < .2 - .000001 || OutputLength > 300 + .000001)
+            throw new InvalidOperationException("완성 GIF 길이는 0.2초~5분입니다. 배속이나 시작·끝 시간을 조정하세요.");
         if (Width is not (360 or 480 or 720) || Fps is not (10 or 12 or 15 or 20)) throw new InvalidOperationException("크기와 프레임 수를 다시 선택하세요.");
+    }
+    internal static double ParseSpeed(string text)
+    {
+        if (!double.TryParse(text.Trim(), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var speed) || !double.IsFinite(speed) || speed < .25 || speed > 100)
+            throw new FormatException("GIF 배속은 0.25~100 사이의 숫자로 입력하세요. 예: 10 또는 2.5");
+        return speed;
+    }
+    internal static string DurationText(double seconds)
+    {
+        // Round before splitting, so a value near a minute never displays as 60 seconds.
+        var milliseconds = (long)Math.Round(seconds * 1000);
+        var minutes = milliseconds / 60000;
+        double remainder = milliseconds % 60000 / 1000.0;
+        return minutes == 0 ? $"{remainder:0.###}초" : remainder == 0 ? $"{minutes}분" : $"{minutes}분 {remainder:0.###}초";
     }
     internal static string Time(double time)
     {
@@ -79,20 +99,21 @@ internal static class GifExport
         {
             Directory.CreateDirectory(folder);
             // A second pass bounds memory: never retain an entire decoded clip for palette generation.
-            var scale = $"fps={options.Fps},scale=trunc(iw*sar/2)*2:ih,setsar=1,scale=w='min({options.Width},iw)':h='min({options.Width},ih)':force_original_aspect_ratio=decrease:flags=lanczos";
+            // Change the timeline before selecting output frames: 600 source seconds / 10 = 60 GIF seconds.
+            var scale = $"settb=AVTB,setpts=(PTS-STARTPTS)/{Number(options.Speed)},fps={options.Fps},scale=trunc(iw*sar/2)*2:ih,setsar=1,scale=w='min({options.Width},iw)':h='min({options.Width},ih)':force_original_aspect_ratio=decrease:flags=lanczos";
             string[] common = ["-hide_banner", "-loglevel", "error", "-nostdin", "-threads", "2", "-filter_threads", "1", "-filter_complex_threads", "1"];
             var palette = Path.Combine(temp, "palette.png");
             progress.Report("1/2 · GIF 색상을 최적화하는 중…");
-            await CaptureTools.RunAsync(tools.Ffmpeg, [.. common, .. input, "-map", stream, "-an", "-sn", "-vf", scale + ",palettegen=stats_mode=full", "-frames:v", "1", "-update", "1", "-y", palette], temp, cancel);
+            await CaptureTools.RunAsync(tools.Ffmpeg, [.. common, .. input, "-map", stream, "-an", "-sn", "-vf", scale + ",palettegen=stats_mode=full", "-frames:v", "1", "-update", "1", "-y", palette], temp, cancel, options.WorkerTimeoutSeconds);
             progress.Report("2/2 · GIF로 저장하는 중…");
             partial = Path.Combine(folder, "." + Guid.NewGuid().ToString("N") + ".partial");
-            await CaptureTools.RunAsync(tools.Ffmpeg, [.. common, .. input, "-i", palette, "-t", Number(options.Length), "-filter_complex", $"[{stream}]{scale}[v];[v][1:v]paletteuse=dither=sierra2_4a", "-an", "-sn", "-loop", "0", "-f", "gif", "-y", partial], temp, cancel);
+            await CaptureTools.RunAsync(tools.Ffmpeg, [.. common, .. input, "-i", palette, "-t", Number(options.OutputLength), "-filter_complex", $"[{stream}]{scale}[v];[v][1:v]paletteuse=dither=sierra2_4a", "-an", "-sn", "-loop", "0", "-f", "gif", "-y", partial], temp, cancel, options.WorkerTimeoutSeconds);
             cancel.ThrowIfCancellationRequested();
             if (new FileInfo(partial).Length < 30) throw new InvalidOperationException("GIF에 저장할 화면이 없습니다.");
             var invalid = Path.GetInvalidFileNameChars();
             string safe = new(title.Where(c => !invalid.Contains(c) && !char.IsControl(c)).Take(65).ToArray());
             safe = safe.Trim().TrimEnd('.'); if (safe.Length == 0) safe = "영상";
-            string prefix = $"{DateTime.Now:yyyyMMdd_HHmmss}_{safe}_{options.Start:0.###}-{options.End:0.###}";
+            string prefix = $"{DateTime.Now:yyyyMMdd_HHmmss}_{safe}_{Number(options.Start)}-{Number(options.End)}_{Number(options.Speed)}x";
             for (int suffix = 0; ; suffix++)
             {
                 string output = Path.Combine(folder, prefix + (suffix == 0 ? "" : $"_{suffix}") + ".gif");

@@ -12,7 +12,7 @@
     <StartupObject>ShinPlayer.Program</StartupObject>
     <ApplicationIcon>Assets\ShinPlayer.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.6.0-beta.3</Version>
+    <Version>0.6.0-beta.4</Version>
     <Product>신플레이어</Product>
     <Description>빠른 Windows 영상 플레이어</Description>
     <Company>ShinPlayer</Company>

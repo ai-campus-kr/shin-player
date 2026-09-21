@@ -123,9 +123,10 @@ internal sealed class BrowserGifSource : GifSource
                 if (state.Paused && state.Time < options.End - .1 && watch.Elapsed.TotalSeconds > 1)
                     throw new InvalidOperationException("재생이 일시정지되어 캡처를 취소했습니다.");
                 var offset = Math.Clamp(state.Time - options.Start, 0, options.Length);
-                if (offset > frames[^1].Time + .01 && lastCapture.Elapsed.TotalSeconds >= 1.0 / options.Fps)
+                // Sample for the output timeline. A long, fast GIF must not save frames at source FPS.
+                if (offset >= frames[^1].Time + options.Speed / options.Fps && lastCapture.Elapsed.TotalSeconds >= 1.0 / options.Fps)
                 {
-                    progress.Report($"화면 캡처 · {offset:0.0} / {options.Length:0.0}초 · 창을 열어 두세요");
+                    progress.Report($"화면 캡처 · 원본 {offset:0.0} / {options.Length:0.0}초 → GIF {GifOptions.DurationText(options.OutputLength)}");
                     await CaptureAsync(state, offset); lastCapture.Restart();
                 }
                 await Task.Delay(10, cancel);

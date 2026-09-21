@@ -48,12 +48,12 @@ internal sealed partial class YouTubeWindow
             var revision = window._revision; var id = window._videoId;
             var source = await BrowserGifSource.CreateAsync(window._browser, window, () => !window._closed && window._revision == revision && window._videoId == id, CancellationToken.None);
             var tools = await CaptureTools.EnsureAsync(new Progress<string>(), CancellationToken.None);
-            var path = await source.ExportAsync(tools, new GifOptions(10, 13, 480, 12), output, new Progress<string>(message => window._status.Text = message), CancellationToken.None);
+            var path = await source.ExportAsync(tools, new GifOptions(10, 20, 480, 12, 5), output, new Progress<string>(message => window._status.Text = message), CancellationToken.None);
             await Task.Delay(250);
             double after = JsonSerializer.Deserialize<double>(await window._browser.ExecuteScriptAsync("document.querySelector('video').currentTime"));
             if (Math.Abs(after - before) > .2 || await window._browser.ExecuteScriptAsync("document.querySelector('video').paused") != "true") throw new InvalidOperationException("Live playback state was not restored.");
             await window.CaptureLiveAsync(Path.Combine(output, "youtube-gif-live.png"));
-            await File.WriteAllTextAsync(Path.Combine(output, "live-gif.json"), JsonSerializer.Serialize(new { passed = true, path, before, after, apiCalled = false, realYouTube = true, start = 10, end = 13 }));
+            await File.WriteAllTextAsync(Path.Combine(output, "live-gif.json"), JsonSerializer.Serialize(new { passed = true, path, before, after, apiCalled = false, realYouTube = true, start = 10, end = 20, speed = 5, outputSeconds = 2 }));
             return 0;
         }
         catch (Exception ex)

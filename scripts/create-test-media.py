@@ -62,4 +62,12 @@ if not capture_video.exists():
 capture_mkv = out / 'capture-ass.mkv'
 if not capture_mkv.exists():
     run('-i', capture_video, '-map', '0:v', '-map', '0:s:0', '-c:v', 'copy', '-c:s', 'ass', capture_mkv)
+# Ten actual minutes with distinct scenes; low source FPS keeps the fixture small.
+long_gif_video = out / 'gif-ten-minutes.mp4'
+if not long_gif_video.exists():
+    run('-f', 'lavfi', '-i', 'color=red:size=640x360:rate=2:duration=200',
+        '-f', 'lavfi', '-i', 'color=green:size=640x360:rate=2:duration=200',
+        '-f', 'lavfi', '-i', 'color=blue:size=640x360:rate=2:duration=200',
+        '-filter_complex', '[0:v][1:v][2:v]concat=n=3:v=1:a=0[v]',
+        '-map', '[v]', '-c:v', 'libx264', '-preset', 'ultrafast', '-g', '2', long_gif_video)
 print(out)
