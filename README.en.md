@@ -15,7 +15,7 @@ A Windows video player with fine speed control, audio boost, and batch frame cap
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/1da39e78b50322c309727cd52d082da4a7681893/docs/screenshots/v0.5.0/01-boost-and-speed.png" width="1000" alt="Actual Shin Player controls with +12 dB audio boost and 1.5× playback selected">
+  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/02-home-panels.png" width="1000" alt="ShinPlayer home with the monochrome S and play icon, purple KAI card and green Naver Premium Content card">
 </p>
 
 | **0.25–8×** | **Up to +12 dB** | **Subtitles → PNG** | **4 UI styles** |

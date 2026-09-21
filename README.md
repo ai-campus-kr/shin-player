@@ -15,7 +15,7 @@
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/1da39e78b50322c309727cd52d082da4a7681893/docs/screenshots/v0.5.0/01-boost-and-speed.png" width="1000" alt="신플레이어 실제 재생 컨트롤 — +12 dB 음량 증폭과 1.5배속 선택">
+  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/02-home-panels.png" width="1000" alt="새 흑백 재생 아이콘과 보라색 KAI·녹색 네이버 프리미엄콘텐츠 카드가 있는 신플레이어 홈 화면">
 </p>
 
 | **0.25–8×** | **최대 +12 dB** | **자막 → PNG** | **4가지 UI** |

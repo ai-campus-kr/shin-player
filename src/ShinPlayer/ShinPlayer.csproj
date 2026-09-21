@@ -23,5 +23,6 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
     <Content Include="..\..\native\libmpv-2.dll" Link="libmpv-2.dll" CopyToOutputDirectory="PreserveNewest" Condition="'$(IncludeNativeEngine)' != 'false'" />
     <Resource Include="Assets\ShinPlayer.ico" />
+    <Resource Include="Assets\ShinPlayer.png" />
   </ItemGroup>
 </Project>

@@ -288,7 +288,7 @@ public partial class MainWindow
             await browser.ExecuteScriptAsync("(()=>{const v=document.querySelector('video');v.currentTime=5.2;v.pause();v.playbackRate=1.5;v.muted=false;})()");
             await Task.Delay(150);
             var source = await BrowserGifSource.CreateAsync(browser, window, () => valid, CancellationToken.None);
-            if (playing) await browser.ExecuteScriptAsync("(()=>{const v=document.querySelector('video');v.currentTime=1;v.muted=true;v.play();})()");
+            if (playing) await browser.ExecuteScriptAsync("(()=>{const v=document.querySelector('video');v.addEventListener('play',()=>{if(window.__shinGif)window.__sawGif=true;else if(window.__sawGif)window.__restored={time:v.currentTime,paused:v.paused,rate:v.playbackRate,muted:v.muted};});v.currentTime=1;v.muted=true;v.play();})()");
             var options = new GifOptions(1, 5, 480, 12, speed);
             using var cancel = new CancellationTokenSource();
             string? path = null;
@@ -299,11 +299,15 @@ public partial class MainWindow
             }
             catch (OperationCanceledException) when (cancelTest) { }
             await Task.Delay(100);
-            using var state = JsonDocument.Parse(await browser.ExecuteScriptAsync("(()=>{const v=document.querySelector('video');return {time:v.currentTime,paused:v.paused,muted:v.muted,rate:v.playbackRate,session:!!window.__shinGif}})()"));
+            using var state = JsonDocument.Parse(await browser.ExecuteScriptAsync("(()=>{const v=document.querySelector('video');return {time:v.currentTime,paused:v.paused,muted:v.muted,rate:v.playbackRate,session:!!window.__shinGif,restored:window.__restored||null}})()"));
             var s = state.RootElement;
             var restoredTime = s.GetProperty("time").GetDouble();
-            bool correctTime = playing ? restoredTime is > 1 and < 4 : Math.Abs(restoredTime - 5.2) < .1;
-            if (!correctTime || s.GetProperty("paused").GetBoolean() == playing || s.GetProperty("muted").GetBoolean() != playing || s.GetProperty("rate").GetDouble() != 1.5 || s.GetProperty("session").GetBoolean()) throw new Exception("Browser playback not restored: " + s);
+            // The six-second fixture can finish while FFmpeg encodes. Validate the actual
+            // resume event instead of assuming encoding always takes less than three seconds.
+            var resumed = s.GetProperty("restored");
+            bool correctTime = playing ? resumed.ValueKind == JsonValueKind.Object && resumed.GetProperty("time").GetDouble() is >= 1 and < 1.5 && !resumed.GetProperty("paused").GetBoolean() && resumed.GetProperty("rate").GetDouble() == 1.5 && resumed.GetProperty("muted").GetBoolean() : Math.Abs(restoredTime - 5.2) < .1;
+            bool correctPause = playing ? !s.GetProperty("paused").GetBoolean() || restoredTime >= source.Duration - .1 : s.GetProperty("paused").GetBoolean();
+            if (!correctTime || !correctPause || s.GetProperty("muted").GetBoolean() != playing || s.GetProperty("rate").GetDouble() != 1.5 || s.GetProperty("session").GetBoolean()) throw new Exception("Browser playback not restored: " + s);
             if (Directory.GetDirectories(GifExport.TempRoot).Any(x => !tempBefore.Contains(x))) throw new Exception("Browser frames leaked");
             if (path != null) await VerifyGifAsync(path, options, tools, output);
             await browser.ExecuteScriptAsync("document.querySelector('#movie_player').classList.add('ad-showing')");

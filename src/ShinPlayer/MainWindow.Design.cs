@@ -101,10 +101,13 @@ public partial class MainWindow
     private void UpdateDesignEmptyLayout()
     {
         bool lime = CurrentDesign.Id == "lime";
-        bool compact = Stage.ActualHeight < 300;
+        double copyHeight = Stage.ActualHeight - CreatorPromotions.DesiredSize.Height;
+        bool compact = copyHeight < 300, tight = copyHeight < 220;
         EmptyArtwork.Visibility = lime && Stage.ActualWidth >= 920 ? Visibility.Visible : Visibility.Collapsed;
-        EmptyTitle.FontSize = lime ? compact ? 28 : Stage.ActualHeight < 360 ? 32 : 43 : CurrentDesign.Id == "studio" ? 25 : 30;
+        EmptyTitle.FontSize = lime ? tight ? 24 : compact ? 28 : copyHeight < 360 ? 32 : 43 : CurrentDesign.Id == "studio" ? 25 : 30;
         EmptyTitle.LineHeight = EmptyTitle.FontSize * 1.3;
+        EmptyCopy.Margin = new Thickness(EmptyCopy.Margin.Left, tight ? 10 : 22, EmptyCopy.Margin.Right, tight ? 10 : 22);
+        DesignEyebrow.Visibility = tight ? Visibility.Collapsed : Visibility.Visible;
         DesignEyebrow.Margin = new Thickness(0, 0, 0, compact ? 8 : 17);
         EmptyDescription.Margin = new Thickness(1, compact ? 8 : 13, 0, compact ? 12 : 23);
     }

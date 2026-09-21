@@ -15,7 +15,7 @@
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/1da39e78b50322c309727cd52d082da4a7681893/docs/screenshots/v0.5.0/01-boost-and-speed.png" width="1000" alt="实际播放控件：已选择 +12 dB 音量增强和 1.5 倍速">
+  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/02-home-panels.png" width="1000" alt="新版主页：黑白S与播放图标、紫色KAI卡片和绿色NAVER优质内容卡片">
 </p>
 
 | **0.25–8 倍速** | **最高 +12 dB** | **字幕 → PNG** | **4 种界面** |

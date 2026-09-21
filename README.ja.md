@@ -15,7 +15,7 @@
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/1da39e78b50322c309727cd52d082da4a7681893/docs/screenshots/v0.5.0/01-boost-and-speed.png" width="1000" alt="実際の再生コントロール：音量ブースト +12 dB、再生速度 1.5倍を選択">
+  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/02-home-panels.png" width="1000" alt="白黒のSと再生アイコン、紫のKAIカードと緑のNAVERカードを配置したホーム画面">
 </p>
 
 | **0.25〜8倍速** | **最大 +12 dB** | **字幕 → PNG** | **4種類の UI** |
