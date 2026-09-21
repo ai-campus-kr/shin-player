@@ -9,6 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace ShinPlayer;
 
@@ -93,7 +96,9 @@ public partial class MainWindow
             try
             {
                 dialog.Show(); await WaitUntilAsync(() => dialog.IsLoaded, TimeSpan.FromSeconds(5)); await dialog.Initialization;
-                dialog.StartTime.Text = "00:00"; dialog.EndTime.Text = "10:00";
+                dialog.UpdateLayout();
+                dialog.Range.BeginDrag(GifRangeSelector.Part.End, dialog.Range.XAt(dialog.Range.End) + 8);
+                dialog.Range.DragTo(dialog.Range.XAt(600) + 8); dialog.Range.EndDrag();
                 var preset = VisualChildren<Button>(dialog).Single(b => Equals(b.Content, "10×"));
                 preset.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 if (dialog.SpeedInput.Text != "10" || dialog.Estimate.Text != "원본 10분 ÷ 10× → GIF 1분") throw new Exception("Incorrect speed estimate or preset wiring");
@@ -104,6 +109,95 @@ public partial class MainWindow
                 return new { sourceSeconds = longVideo.Duration, outputSeconds = 60, speed = 10, path = dialog.SavedPath };
             }
             finally { dialog.Close(); }
+        });
+        await test("gif-range-drag-geometry-resize-and-scaling", async () =>
+        {
+            var longVideo = await new SubtitleCapture(tools).ProbeAsync(Path.Combine(fixtures, "gif-ten-minutes.mp4"), CancellationToken.None);
+            var dialog = new GifWindow(_ => Task.FromResult<GifSource>(new LocalGifSource(longVideo, () => 60))) { Owner = this };
+            try
+            {
+                dialog.Show(); await dialog.Initialization; var range = dialog.Range;
+                foreach (double width in new[] { 600d, 920d })
+                foreach (double scale in new[] { 1d, 1.25, 1.5, 2 })
+                {
+                    dialog.Width = width; range.LayoutTransform = new ScaleTransform(scale, scale); dialog.UpdateLayout();
+                    range.SetRange(60, 180);
+                    // Grabbing off-center must retain its offset across repeated layout passes.
+                    double grab = range.XAt(60) - 13, destination = range.XAt(90) - 13;
+                    var rootPoint = range.TranslatePoint(new Point(destination, 30), dialog);
+                    range.BeginDrag(GifRangeSelector.Part.Start, grab);
+                    for (int i = 0; i < 10; i++) { range.DragTo(dialog.TranslatePoint(rootPoint, range).X); dialog.UpdateLayout(); }
+                    range.EndDrag();
+                    if (Math.Abs(range.Start - 90) > .001 || range.End != 180 || GifOptions.Parse(dialog.StartTime.Text) != 90) throw new Exception("Drag start drifted or text did not synchronize");
+                    range.BeginDrag(GifRangeSelector.Part.End, range.XAt(180) + 7);
+                    range.EndDrag(range.XAt(300) + 7); // Mouse-up must use its coordinate even without a move event.
+                    if (range.End != 300) throw new Exception("End handle jumped");
+                    range.BeginDrag(GifRangeSelector.Part.Selection, range.XAt(150));
+                    range.DragTo(range.XAt(200)); range.EndDrag();
+                    if (range.Start != 140 || range.End != 350) throw new Exception("Moving selection changed its length");
+                    range.BeginDrag(GifRangeSelector.Part.Start, range.XAt(140));
+                    range.DragTo(range.ActualWidth + 500); range.EndDrag();
+                    if (Math.Abs(range.End - range.Start - .2) > .000001) throw new Exception("Handles crossed");
+                    range.BeginDrag(GifRangeSelector.Part.Selection, range.XAt(range.Start));
+                    range.DragTo(-2000); range.EndDrag();
+                    if (range.Start != 0 || Math.Abs(range.End - .2) > .000001) throw new Exception("Outside drag did not clamp");
+                }
+                range.LayoutTransform = Transform.Identity;
+                return new { widths = new[] { 600, 920 }, layoutScales = new[] { 1, 1.25, 1.5, 2 }, grabOffsetPreserved = true, crossingPrevented = true };
+            }
+            finally { dialog.Close(); }
+        });
+        await test("gif-range-zoom-keyboard-typed-input-and-recovery", async () =>
+        {
+            var dialog = new GifWindow(_ => Task.FromResult<GifSource>(source)) { Owner = this };
+            try
+            {
+                dialog.Show(); await dialog.Initialization; dialog.UpdateLayout(); var range = dialog.Range;
+                dialog.StartTime.Text = "1"; dialog.EndTime.Text = "5";
+                if (range.Start != 1 || range.End != 5) throw new Exception("Typed range did not move handles");
+                var key = new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(dialog), Environment.TickCount, Key.Right) { RoutedEvent = PreviewKeyDownEvent };
+                range.StartHandle.RaiseEvent(key);
+                if (!key.Handled || Math.Abs(range.Start - 1.1) > .000001) throw new Exception("Handle keyboard event was not handled");
+                range.AdjustKey(GifRangeSelector.Part.Start, Key.Right, ModifierKeys.Shift);
+                range.AdjustKey(GifRangeSelector.Part.End, Key.Left, ModifierKeys.Shift);
+                if (range.Start != 2.1 || range.End != 4) throw new Exception("Fine adjustment failed");
+                VisualChildren<Button>(dialog).Single(b => Equals(b.Content, "선택 확대")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                if (range.ViewStart >= range.Start || range.ViewEnd <= range.End || range.ViewEnd - range.ViewStart >= source.Duration) throw new Exception("Selection zoom failed");
+                range.AdjustKey(GifRangeSelector.Part.Selection, Key.Home, ModifierKeys.None);
+                if (Math.Abs(range.Start - range.ViewStart) > .000001 || Math.Abs(range.End - range.Start - 1.9) > .000001) throw new Exception("Zoomed selection moved outside view");
+                VisualChildren<Button>(dialog).Single(b => Equals(b.Content, "전체 보기")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                if (range.ViewStart != 0 || range.ViewEnd != source.Duration) throw new Exception("Full timeline not restored");
+                dialog.StartTime.Text = "invalid";
+                if (VisualChildren<Button>(dialog).Single(b => Equals(b.Content, "GIF 만들기")).IsEnabled) throw new Exception("Invalid typed time enables export");
+                range.AdjustKey(GifRangeSelector.Part.End, Key.Right, ModifierKeys.None);
+                if (!VisualChildren<Button>(dialog).Single(b => Equals(b.Content, "GIF 만들기")).IsEnabled || GifOptions.Parse(dialog.StartTime.Text) != range.Start) throw new Exception("Drag/keyboard did not recover from invalid typing");
+                range.StartHandle.RaiseEvent(new DragStartedEventArgs(0, 0));
+                range.StartHandle.RaiseEvent(new DragDeltaEventArgs(0, 0));
+                range.StartHandle.RaiseEvent(new DragCompletedEventArgs(0, 0, false));
+                double before = range.Start; range.DragTo(2000);
+                if (before != range.Start) throw new Exception("Completed gesture remained active");
+                OnlineSelfTest.Capture(dialog, Path.Combine(output, "gif-range-zoom.png"));
+                return new { keyboardEvent = true, zoom = true, typedTimeSync = true, invalidInputRecovery = true };
+            }
+            finally { dialog.Close(); }
+        });
+        await test("gif-range-short-video-and-one-hour-limit", () =>
+        {
+            var range = new GifRangeSelector { Width = 600 }; range.Measure(new Size(600, 84)); range.Arrange(new Rect(0, 0, 600, 84));
+            range.Initialize(.2, 0, .2);
+            range.AdjustKey(GifRangeSelector.Part.Start, Key.End, ModifierKeys.Control);
+            range.AdjustKey(GifRangeSelector.Part.End, Key.Home, ModifierKeys.Control);
+            if (range.Start != 0 || range.End != .2) throw new Exception("Shortest valid source changed");
+            range.Initialize(.3, .1, .3); // .1 + .2 is slightly greater than .3 in floating-point arithmetic.
+            range.AdjustKey(GifRangeSelector.Part.End, Key.Home, ModifierKeys.None);
+            if (Math.Abs(range.End - range.Start - .2) > .000001) throw new Exception("Fractional boundary failed");
+            range.Initialize(7200, 0, 5);
+            range.BeginDrag(GifRangeSelector.Part.End, range.XAt(5)); range.DragTo(range.XAt(7200)); range.EndDrag();
+            if (range.End != 3600) throw new Exception("One-hour drag limit ignored");
+            range.AdjustKey(GifRangeSelector.Part.Selection, Key.End, ModifierKeys.None);
+            if (range.Start != 3600 || range.End != 7200) throw new Exception("Selection cannot reach video end");
+            if (range.SetRange(double.NaN, 10) || range.SetRange(4, 1)) throw new Exception("Invalid times accepted");
+            return Task.FromResult<object?>(new { shortestSourceSeconds = .2, maximumSelectionSeconds = 3600 });
         });
         await test("gif-button-dialog-four-designs-and-export", async () =>
         {

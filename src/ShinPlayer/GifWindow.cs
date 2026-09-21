@@ -13,6 +13,7 @@ internal sealed class GifWindow : Window
 {
     private readonly Func<CancellationToken, Task<GifSource>> _load;
     internal readonly TextBox StartTime = new(), EndTime = new();
+    internal readonly GifRangeSelector Range = new();
     internal readonly TextBox SpeedInput = new() { Text = "1", Width = 72, VerticalContentAlignment = VerticalAlignment.Center };
     internal readonly TextBlock Estimate = new() { TextWrapping = TextWrapping.Wrap, FontSize = 15, FontWeight = FontWeights.SemiBold, Margin = new(0, 4, 0, 12) };
     private readonly ComboBox _width = new() { ItemsSource = new[] { 360, 480, 720 }, SelectedItem = 480, MinWidth = 100 };
@@ -29,7 +30,7 @@ internal sealed class GifWindow : Window
     private CancellationTokenSource _cancelSource = new();
     private GifSource? _source;
     private CaptureTools? _tools;
-    private bool _busy = true, _closeWhenStopped, _closed;
+    private bool _busy = true, _closeWhenStopped, _closed, _syncingRange;
     internal string? SavedPath { get; private set; }
     internal Task Initialization { get; private set; } = Task.CompletedTask;
     private Task _operation = Task.CompletedTask;
@@ -40,7 +41,7 @@ internal sealed class GifWindow : Window
         _load = load;
         Style = (Style)FindResource(typeof(Window));
         Title = "구간 GIF 만들기 · 신플레이어";
-        Width = 660; Height = 640; MinWidth = 560; MinHeight = 580;
+        Width = 720; Height = 720; MinWidth = 600; MinHeight = 620;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var root = new Grid { Margin = new(24) };
         root.RowDefinitions.Add(new() { Height = GridLength.Auto });
@@ -52,7 +53,21 @@ internal sealed class GifWindow : Window
         _title.SetResourceReference(TextBlock.ForegroundProperty, "Muted"); heading.Children.Add(_title); root.Children.Add(heading);
         var body = new StackPanel();
         body.Children.Add(_fields);
-        AddTimeRow("시작", StartTime); AddTimeRow("끝", EndTime);
+        var rangeHeading = new DockPanel { Margin = new(0, 0, 0, 4) };
+        var rangeActions = new StackPanel { Orientation = Orientation.Horizontal };
+        var zoom = new Button { Content = "선택 확대", FontSize = 11, Padding = new(10, 6, 10, 6), ToolTip = "선택 구간 주변을 확대해 더 정밀하게 조절" };
+        var all = new Button { Content = "전체 보기", FontSize = 11, Padding = new(10, 6, 10, 6), Margin = new(6, 0, 0, 0) };
+        zoom.Click += (_, _) => Range.ZoomToSelection(); all.Click += (_, _) => Range.ShowAll();
+        rangeActions.Children.Add(zoom); rangeActions.Children.Add(all);
+        DockPanel.SetDock(rangeActions, Dock.Right); rangeHeading.Children.Add(rangeActions);
+        rangeHeading.Children.Add(new TextBlock { Text = "드래그로 구간 선택", FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+        _fields.Children.Add(rangeHeading); _fields.Children.Add(Range);
+        var rangeHelp = new TextBlock { Text = "양 끝은 시작·끝 조절 · 가운데는 구간 이동", FontSize = 12, Margin = new(0, 0, 0, 14) };
+        rangeHelp.SetResourceReference(TextBlock.ForegroundProperty, "Muted"); _fields.Children.Add(rangeHelp);
+        var times = new Grid { Margin = new(0, 0, 0, 16) };
+        times.ColumnDefinitions.Add(new()); times.ColumnDefinitions.Add(new() { Width = new GridLength(16) }); times.ColumnDefinitions.Add(new());
+        times.Children.Add(TimeField("시작", StartTime));
+        var endField = TimeField("끝", EndTime); Grid.SetColumn(endField, 2); times.Children.Add(endField); _fields.Children.Add(times);
         var speedRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(0, 0, 0, 10) };
         speedRow.Children.Add(new TextBlock { Text = "배속", Width = 42 });
         speedRow.Children.Add(SpeedInput);
@@ -70,7 +85,7 @@ internal sealed class GifWindow : Window
         options.Children.Add(new TextBlock { Text = "최대 크기", Margin = new(0, 0, 10, 0) }); options.Children.Add(_width);
         options.Children.Add(new TextBlock { Text = "px     부드러움", Margin = new(8, 0, 10, 0) }); options.Children.Add(_fps);
         options.Children.Add(new TextBlock { Text = "fps", Margin = new(8, 0, 0, 0) }); _fields.Children.Add(options);
-        var help = new TextBlock { Text = "배속 직접 입력 0.25~100× · 원본 구간 최대 1시간 · 완성 GIF 0.2초~5분\n예: 10분 ÷ 10배속 = 1분 GIF. 시간은 01:23.500 또는 초로 입력하세요.", FontSize = 12, TextWrapping = TextWrapping.Wrap };
+        var help = new TextBlock { Text = "배속 0.25~100× · 원본 최대 1시간 · 완성 GIF 0.2초~5분\n시간 직접 입력도 가능합니다. 손잡이에서 ← → 0.1초 · Shift 1초 · Ctrl 10초.", FontSize = 12, TextWrapping = TextWrapping.Wrap };
         help.SetResourceReference(TextBlock.ForegroundProperty, "Muted"); body.Children.Add(help);
         body.Children.Add(_status); body.Children.Add(_progress); body.Children.Add(_output);
         _output.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
@@ -87,21 +102,40 @@ internal sealed class GifWindow : Window
         _open.Click += (_, _) => Open(false); _folder.Click += (_, _) => Open(true);
         Closing += OnClosing;
         Closed += (_, _) => { _closed = true; _cancelSource.Cancel(); _cancelSource.Dispose(); };
-        StartTime.TextChanged += (_, _) => RefreshEstimate();
-        EndTime.TextChanged += (_, _) => RefreshEstimate();
+        Range.RangeChanged += () =>
+        {
+            _syncingRange = true;
+            try { StartTime.Text = GifOptions.Time(Range.Start); EndTime.Text = GifOptions.Time(Range.End); }
+            finally { _syncingRange = false; }
+            RefreshEstimate();
+        };
+        StartTime.TextChanged += (_, _) => SyncTypedRange();
+        EndTime.TextChanged += (_, _) => SyncTypedRange();
         SpeedInput.TextChanged += (_, _) => RefreshEstimate();
     }
-    private void AddTimeRow(string label, TextBox input)
+    private FrameworkElement TimeField(string label, TextBox input)
     {
-        var row = new DockPanel { Margin = new(0, 0, 0, 10) };
-        row.Children.Add(new TextBlock { Text = label, Width = 42 });
-        var now = new Button { Content = "현재 위치", Margin = new(10, 0, 0, 0) };
-        DockPanel.SetDock(now, Dock.Right); row.Children.Add(now); row.Children.Add(input); _fields.Children.Add(row);
+        var row = new StackPanel();
+        var heading = new DockPanel { Margin = new(0, 0, 0, 6) };
+        var now = new Button { Content = "현재 위치", Padding = new(8, 3, 8, 3), FontSize = 11 };
+        DockPanel.SetDock(now, Dock.Right); heading.Children.Add(now);
+        heading.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center }); row.Children.Add(heading);
+        input.FontFamily = new System.Windows.Media.FontFamily("Consolas"); input.FontSize = 15;
+        System.Windows.Automation.AutomationProperties.SetName(input, "GIF " + label + " 시간 직접 입력");
+        row.Children.Add(input);
         now.Click += async (_, _) =>
         {
             try { if (_source != null) input.Text = GifOptions.Time(await _source.PositionAsync()); }
             catch (Exception ex) { _status.Text = ex.Message; }
         };
+        return row;
+    }
+    private void SyncTypedRange()
+    {
+        if (_syncingRange) return;
+        try { Range.SetRange(GifOptions.Parse(StartTime.Text), GifOptions.Parse(EndTime.Text)); }
+        catch (FormatException) { }
+        RefreshEstimate();
     }
     private async Task InitializeAsync()
     {
@@ -110,6 +144,7 @@ internal sealed class GifWindow : Window
             _fields.IsEnabled = false; _status.Text = "영상을 확인하는 중…";
             _source = await _load(_cancelSource.Token);
             var position = Math.Clamp(await _source.PositionAsync(), 0, Math.Max(0, _source.Duration - .2));
+            Range.Initialize(_source.Duration, position, Math.Min(_source.Duration, position + 5));
             StartTime.Text = GifOptions.Time(position); EndTime.Text = GifOptions.Time(Math.Min(_source.Duration, position + 5));
             _title.Text = _source.Title;
             _tools = await CaptureTools.EnsureAsync(new Progress<string>(value => { if (!_closed) _status.Text = value; }), _cancelSource.Token);
