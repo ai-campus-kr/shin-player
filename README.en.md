@@ -45,7 +45,7 @@ Open a local video file and click **GIF** in the player. **Drag the two timeline
 
 ## Quick start
 
-1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)** and extract the entire archive.
+1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)** and extract the entire archive.
 2. Run **`Install.cmd`**. No administrator privileges or separate .NET installation are required.
 3. Open **신플레이어** from the Start menu, then drop a video onto it or click **영상 열기** (Open video).
 
@@ -198,10 +198,10 @@ Playback is not guaranteed for DRM-protected videos, damaged files, or specializ
 
 ## YouTube and video chat — 0.6 beta
 
-**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)
+**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)
 
 1. Enter a YouTube address in the always-visible top **address bar**, then press **Enter** or **→**. **Alt+D / Ctrl+U** selects the address. You can omit `https://`, for example `youtube.com`. The app opens the normal YouTube page in **Edge WebView2**.
-2. **Subtitles load automatically when you open a video.** If none are available, the panel shows **“자막이 없는 영상입니다”** (This video has no subtitles). Chat sits on the right in wide windows and below in narrow windows; **채팅 배치** selects its position.
+2. **Subtitles load automatically when you open a video.** If none are available, the panel shows **“자막이 없는 영상입니다”** (This video has no subtitles). Chat sits on the right in wide windows and below in narrow windows; **채팅 배치** selects its position. Both legacy transcript panels and the newer **Video info → Transcript** view are supported.
 3. Save your OpenAI key in the **API 설정** window. A green **✓ API 키 저장됨** confirms local storage. **연결 확인** (Check connection) tests the API and shows **✓ API 연결 확인됨** on success. Ordinary questions keep playback in place; **“Go to that part”** or a supporting timestamp seeks.
 
 For local videos, **AI / Ctrl+J** automatically reads embedded text subtitles, preferring Korean, then the default track, then the first track. External SRT, image subtitles, OCR and speech transcription are excluded.
@@ -303,4 +303,4 @@ Shin Player’s own source is released under the [MIT license](LICENSE). Copyrig
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)

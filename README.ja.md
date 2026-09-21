@@ -45,7 +45,7 @@
 
 ## 使い始める
 
-1. [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)から `ShinPlayer-バージョン-win-x64.zip` をダウンロードし、すべて展開します。
+1. [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)から `ShinPlayer-バージョン-win-x64.zip` をダウンロードし、すべて展開します。
 2. **`Install.cmd`** を実行します。管理者権限や .NET の別途インストールは不要です。
 3. スタートメニューから **신플레이어** を開き、動画をドラッグ＆ドロップするか、**영상 열기**（動画を開く）を押します。
 
@@ -198,10 +198,10 @@ DRM で保護された動画、破損ファイル、特殊な独自形式の再�
 
 ## YouTube と動画 AI チャット — 0.6 ベータ
 
-**「この内容を説明して」→ 字幕に基づいて回答。「その部分へ移動して」→ 再生位置を移動。** [ベータ版をダウンロード](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)
+**「この内容を説明して」→ 字幕に基づいて回答。「その部分へ移動して」→ 再生位置を移動。** [ベータ版をダウンロード](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)
 
 1. 上部に常時表示される **アドレスバー** に YouTube の URL を入力し、**Enter** または **→** を押します。**Alt+D / Ctrl+U** でアドレスを選択できます。`youtube.com` のように `https://` を省略できます。アプリ内の **Edge WebView2** で通常の YouTube ページを開きます。
-2. **動画を開くと字幕を自動で読み込みます。** 字幕がなければ **「자막이 없는 영상입니다」**（字幕のない動画です）と表示します。チャットは広いウィンドウでは右側、狭いウィンドウでは下側に表示され、**채팅 배치**で位置を選べます。
+2. **動画を開くと字幕を自動で読み込みます。** 字幕がなければ **「자막이 없는 영상입니다」**（字幕のない動画です）と表示します。チャットは広いウィンドウでは右側、狭いウィンドウでは下側に表示され、**채팅 배치**で位置を選べます。 従来の文字起こしパネルと新しい **動画情報 → 文字起こし** の両方に対応します。
 3. **API 설정** ウィンドウで自分の OpenAI キーを保存します。緑色の **✓ API 키 저장됨** が保存済みの目印です。**연결 확인**（接続確認）で実際の API を試し、成功すると **✓ API 연결 확인됨** と表示します。通常の質問では再生位置を変えず、<strong>「その部分へ移動して」</strong>または根拠の時刻ボタンで移動します。
 
 ローカル動画は **AI / Ctrl+J** を開くと内蔵テキスト字幕を自動で読み込みます。韓国語、既定トラック、最初のトラックの順に選択します。外部 SRT・画像字幕・OCR・音声文字起こしは使いません。
@@ -303,4 +303,4 @@ Shin Player 本体のソースは [MIT ライセンス](LICENSE)で公開して�
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9) · [不具合報告・機能の提案](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10) · [不具合報告・機能の提案](https://github.com/ai-campus-kr/shin-player/issues)

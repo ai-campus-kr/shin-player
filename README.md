@@ -45,7 +45,7 @@
 
 ## 빠른 시작
 
-1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
+1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
 2. `Install.cmd`를 실행합니다. 관리자 권한과 별도 .NET 설치는 필요하지 않습니다.
 3. 시작 메뉴의 **신플레이어**를 열고 영상 파일을 끌어놓거나 **영상 열기**를 누릅니다.
 
@@ -213,10 +213,10 @@ DRM으로 보호된 영상, 손상된 파일, 특수한 독점 형식까지 모�
 
 ## 유튜브와 영상 AI 채팅 — 0.6 베타
 
-**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [베타 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)
+**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [베타 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)
 
 1. 항상 표시되는 상단 **주소창**에 유튜브 주소를 입력하고 **Enter** 또는 **→**를 누릅니다. **Alt+D / Ctrl+U**로 주소를 선택할 수 있으며, `youtube.com`처럼 `https://`를 생략해도 됩니다. 앱 내부의 **Edge WebView2 브라우저**로 일반 유튜브 페이지를 엽니다.
-2. **영상을 열면 자막을 자동으로 불러옵니다.** 자막이 없으면 <strong>“자막이 없는 영상입니다”</strong>라고 표시합니다. 채팅은 넓은 창에서 오른쪽, 좁은 창에서 아래쪽에 표시되며 **채팅 배치**에서 위치를 선택할 수 있습니다.
+2. **영상을 열면 자막을 자동으로 불러옵니다.** 자막이 없으면 <strong>“자막이 없는 영상입니다”</strong>라고 표시합니다. 채팅은 넓은 창에서 오른쪽, 좁은 창에서 아래쪽에 표시되며 **채팅 배치**에서 위치를 선택할 수 있습니다. 기존 스크립트 창과 새 **동영상 정보 → 스크립트** 화면을 모두 지원합니다.
 3. **API 설정** 창에서 본인의 OpenAI 키를 저장하세요. 초록색 **✓ API 키 저장됨**으로 저장을 확인하고, **연결 확인**으로 실제 API 연결을 시험할 수 있습니다. 성공하면 **✓ API 연결 확인됨**이 표시됩니다. 일반 질문은 재생 위치를 유지하며, **“그 부분으로 이동해줘”** 또는 근거 시간 버튼으로 이동합니다.
 
 로컬 영상은 **AI / Ctrl+J**를 열면 내장 텍스트 자막을 자동으로 읽습니다. 여러 트랙이 있으면 한국어 → 기본 트랙 → 첫 트랙 순서로 선택합니다. 외부 SRT·이미지 자막·OCR·음성 받아쓰기는 사용하지 않습니다.
@@ -318,4 +318,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)

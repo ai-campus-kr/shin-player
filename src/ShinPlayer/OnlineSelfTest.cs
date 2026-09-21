@@ -218,7 +218,7 @@ internal static class OnlineSelfTest
             await VideoChatPanel.TestAutoloadAsync());
         await test("youtube-docked-chat-responsive-layout", async () =>
             await YouTubeWindow.TestLayoutAsync(owner, output));
-        await test("webview2-runtime-transcript-and-seek-offline-fixture", async () =>
+        await test("webview2-runtime-legacy-modern-transcript-and-seek-fixtures", async () =>
             await TestBrowserAsync(fixtures, output, owner));
     }
 
@@ -272,7 +272,34 @@ internal static class OnlineSelfTest
             Reject(() => YouTubePage.ParseTranscript(hidden, TestId));
             var stale = YouTubePage.OpenTranscriptScript("otherVideo1").Replace("new URL(location.href)", $"new URL('https://www.youtube.com/watch?v={TestId}')");
             Require(await browser.ExecuteScriptAsync(stale) == "\"changed\"", "Stale transcript opened");
-            return new { runtime = environment.BrowserVersionString, autoOpenedTranscript = true, transcriptCues = 2, position, adSeekRejected = true, liveYouTubeTest = false };
+            // The new video-info panel has no target-id and uses attributed spans.
+            // Keep the hidden old panel and its stale cues in the same document.
+            await browser.ExecuteScriptAsync("""
+                document.body.insertAdjacentHTML('beforeend', `<ytd-engagement-panel-section-list-renderer id="modern-panel" visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED" is-sync-scroll-panel>
+                  <h2>동영상 정보</h2><button aria-label="닫기" onclick="this.closest('ytd-engagement-panel-section-list-renderer').setAttribute('visibility','ENGAGEMENT_PANEL_VISIBILITY_HIDDEN')">닫기</button>
+                  <transcript-segment-view-model class="ytwTranscriptSegmentViewModelHost"><div class="ytwTranscriptSegmentViewModelTimestamp">0:05</div><div class="ytwTranscriptSegmentViewModelTimestampA11yLabel">5초</div><span class="ytAttributedStringHost" role="text">새 화면의 <b>첫 번째</b> 자막</span></transcript-segment-view-model>
+                  <transcript-segment-view-model class="ytwTranscriptSegmentViewModelHost"><div class="ytwTranscriptSegmentViewModelTimestamp">27:47</div><div class="ytwTranscriptSegmentViewModelTimestampA11yLabel">27분 47초</div><span class="ytAttributedStringHost" role="text">마지막 자막</span></transcript-segment-view-model>
+                </ytd-engagement-panel-section-list-renderer>`);
+                """);
+            Require(await browser.ExecuteScriptAsync(open) == "\"ready\"", "Modern panel without target-id was not recognized");
+            var modern = YouTubePage.ParseTranscript(await browser.ExecuteScriptAsync(script), TestId);
+            Require(modern.Cues.Count == 2 && modern.Cues[0].Text == "새 화면의 첫 번째 자막" && modern.Cues[1].Start == 1667, "Modern text/timestamps include a11y labels, hidden old cues, or lose markup text");
+            string close = YouTubePage.CloseTranscriptScript(TestId).Replace("new URL(location.href)", $"new URL('https://www.youtube.com/watch?v={TestId}')");
+            await browser.ExecuteScriptAsync(YouTubePage.CloseTranscriptScript("otherVideo1").Replace("new URL(location.href)", $"new URL('https://www.youtube.com/watch?v={TestId}')"));
+            Require(await browser.ExecuteScriptAsync(open) == "\"ready\"", "Old navigation closed current transcript");
+            await browser.ExecuteScriptAsync(close);
+            var closedModern = await browser.ExecuteScriptAsync(script);
+            Reject(() => YouTubePage.ParseTranscript(closedModern, TestId));
+            await browser.ExecuteScriptAsync("""
+                document.querySelectorAll('#modern-panel transcript-segment-view-model').forEach(e=>e.remove());
+                document.body.dataset.openCount='0';
+                document.querySelector('#show-transcript').onclick=()=>{document.body.dataset.openCount=String(Number(document.body.dataset.openCount)+1);document.querySelector('#modern-panel').setAttribute('visibility','ENGAGEMENT_PANEL_VISIBILITY_EXPANDED');};
+                """);
+            Require(await browser.ExecuteScriptAsync(open) == "\"opening\"", "Transcript request was not initiated");
+            string pending = YouTubePage.OpenTranscriptScript(TestId, false).Replace("new URL(location.href)", $"new URL('https://www.youtube.com/watch?v={TestId}')");
+            for (int i = 0; i < 3; i++) Require(await browser.ExecuteScriptAsync(pending) == "\"loading\"", "Pending transcript is treated as absent");
+            Require(await browser.ExecuteScriptAsync("document.body.dataset.openCount") == "\"1\"", "Loading panel was reopened repeatedly");
+            return new { runtime = environment.BrowserVersionString, autoOpenedTranscript = true, transcriptCues = 2, modernCues = modern.Cues.Count, hiddenLegacyIgnored = true, repeatedOpenPrevented = true, position, adSeekRejected = true, liveYouTubeTest = false };
         }
         finally { browser.Dispose(); window.Close(); }
     }

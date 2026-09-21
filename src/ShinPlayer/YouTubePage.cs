@@ -53,17 +53,29 @@ internal static class YouTubePage
 
     // Read only the transcript rendered by YouTube's normal page. No private API,
     // stream URL, cookies, browser profile, or network response is extracted.
-    internal static string OpenTranscriptScript(string id) => """
+    private const string TranscriptDom = """
+      const transcriptRows = 'ytd-transcript-segment-renderer, transcript-segment-view-model, .ytwTranscriptSegmentViewModelHost';
+      const visible = e => e && !e.disabled && e.getBoundingClientRect().height > 0 && e.getBoundingClientRect().width > 0;
+      const findTranscriptPanel = () => {
+        const expanded = [...document.querySelectorAll('ytd-engagement-panel-section-list-renderer')]
+          .filter(e => e.getAttribute('visibility') === 'ENGAGEMENT_PANEL_VISIBILITY_EXPANDED' && visible(e));
+        // New video-info panels have no target-id. Prefer the displayed subtitle rows;
+        // hidden legacy panels can coexist with the new panel in the same document.
+        return expanded.find(e => e.querySelector(transcriptRows)) || expanded.find(e =>
+          ['engagement-panel-searchable-transcript', 'PAmodern_transcript_view'].includes(e.getAttribute('target-id')));
+      };
+    """;
+
+    internal static string OpenTranscriptScript(string id, bool allowOpen = true) => """
     (() => {
+      DOM_HELPERS
       const url = new URL(location.href);
       const id = url.searchParams.get('v') || url.pathname.split('/')[2] || '';
       const watch = document.querySelector('ytd-watch-flexy');
       if (id !== EXPECTED_ID || (watch?.getAttribute('video-id') && watch.getAttribute('video-id') !== id)) return 'changed';
-      const panel = [...document.querySelectorAll('ytd-engagement-panel-section-list-renderer')]
-        .find(e => e.getAttribute('target-id') === 'engagement-panel-searchable-transcript' &&
-          e.getAttribute('visibility') === 'ENGAGEMENT_PANEL_VISIBILITY_EXPANDED');
-      if (panel) return panel.querySelector('ytd-transcript-segment-renderer, .ytwTranscriptSegmentViewModelHost') ? 'ready' : 'loading';
-      const visible = e => e && !e.disabled && e.getBoundingClientRect().height > 0 && e.getBoundingClientRect().width > 0;
+      const panel = findTranscriptPanel();
+      if (panel) return panel.querySelector(transcriptRows) ? 'ready' : 'loading';
+      if (!ALLOW_OPEN) return 'loading';
       const transcript = [...document.querySelectorAll('button, [role="button"]')].find(e => visible(e) &&
         /^(show transcript|스크립트 표시|文字起こしを表示|显示文字记录|顯示文字記錄|顯示轉錄稿)$/i.test((e.innerText || e.getAttribute('aria-label') || '').trim()));
       if (transcript) { transcript.click(); return 'opening'; }
@@ -71,20 +83,19 @@ internal static class YouTubePage
       if (visible(expand)) expand.click();
       return document.querySelector('ytd-watch-metadata #description-inline-expander') ? 'waiting' : 'loading';
     })()
-    """.Replace("EXPECTED_ID", JsonSerializer.Serialize(id));
+    """.Replace("DOM_HELPERS", TranscriptDom).Replace("EXPECTED_ID", JsonSerializer.Serialize(id)).Replace("ALLOW_OPEN", allowOpen ? "true" : "false");
 
-    internal const string ReadTranscriptScript = """
+    internal static readonly string ReadTranscriptScript = """
     (() => {
+      DOM_HELPERS
       const url = new URL(location.href);
       const id = url.searchParams.get('v') || url.pathname.split('/')[2] || '';
       const watch = document.querySelector('ytd-watch-flexy');
       if (watch && watch.getAttribute('video-id') && watch.getAttribute('video-id') !== id)
         return {error:'영상 전환 중입니다. 잠시 후 다시 시도하세요.'};
-      const panel = [...document.querySelectorAll('ytd-engagement-panel-section-list-renderer')]
-        .find(e => e.getAttribute('target-id') === 'engagement-panel-searchable-transcript' &&
-          e.getAttribute('visibility') === 'ENGAGEMENT_PANEL_VISIBILITY_EXPANDED');
+      const panel = findTranscriptPanel();
       if (!panel) return {error:'자막을 불러오지 못했습니다. 페이지를 새로고침해 주세요.'};
-      const segments = [...panel.querySelectorAll('ytd-transcript-segment-renderer, .ytwTranscriptSegmentViewModelHost')];
+      const segments = [...panel.querySelectorAll(transcriptRows)];
       if (segments.length > 20000) return {error:'자막이 20,000개를 넘습니다. 이 스크립트는 지원 범위를 벗어났습니다.'};
       const parseTime = value => {
         const parts = value.trim().split(':').map(Number);
@@ -93,14 +104,26 @@ internal static class YouTubePage
       };
       const cues = segments.map(e => {
         const time = e.querySelector('.segment-timestamp, .ytwTranscriptSegmentViewModelTimestamp');
-        const text = e.querySelector('.segment-text, .ytwTranscriptSegmentViewModelText');
+        const text = e.querySelector('.segment-text, .ytwTranscriptSegmentViewModelText, .ytAttributedStringHost[role="text"]');
         return {start:parseTime(time?.textContent || ''), text:(text?.textContent || '').trim()};
       }).filter(c => c.start >= 0 && c.text);
       if (!cues.length) return {error:'현재 스크립트를 읽지 못했습니다. 스크립트가 표시되는지 확인하세요. 유튜브 화면 구조가 변경된 경우에는 업데이트가 필요합니다.'};
       const language = panel.querySelector('ytd-transcript-footer-renderer button, #footer button')?.textContent?.trim() || '선택된 스크립트 언어';
       return {videoId:id,title:document.querySelector('h1.ytd-watch-metadata')?.textContent?.trim() || document.title,language,cues};
     })()
-    """;
+    """.Replace("DOM_HELPERS", TranscriptDom);
+
+    internal static string CloseTranscriptScript(string id) => """
+    (() => {
+      DOM_HELPERS
+      const url = new URL(location.href);
+      if ((url.searchParams.get('v') || url.pathname.split('/')[2] || '') !== EXPECTED_ID) return;
+      const panel = findTranscriptPanel();
+      const close = panel?.querySelector('#visibility-button button, button[aria-label="닫기"], button[aria-label="Close"]');
+      if (close) close.click();
+      requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector('#movie_player')?.scrollIntoView({block:'center'})));
+    })()
+    """.Replace("DOM_HELPERS", TranscriptDom).Replace("EXPECTED_ID", JsonSerializer.Serialize(id));
 
     internal static VideoTranscript ParseTranscript(string json, string expectedId)
     {

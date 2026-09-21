@@ -217,12 +217,14 @@ internal sealed partial class YouTubeWindow : Window
         if (_closed || !_ready || _videoId.Length == 0) throw new InvalidOperationException("유튜브 영상을 먼저 열어주세요.");
         string id = _videoId; int revision = _revision;
         bool opened = false;
+        bool requested = false;
         string? state = null;
         for (int attempt = 0; attempt < 30; attempt++)
         {
             cancel.ThrowIfCancellationRequested();
             if (_closed || revision != _revision || id != _videoId) throw new InvalidOperationException("영상이 바뀌었습니다. 현재 영상의 자막을 다시 불러오세요.");
-            state = JsonSerializer.Deserialize<string>(await _browser.ExecuteScriptAsync(YouTubePage.OpenTranscriptScript(id)).WaitAsync(cancel));
+            state = JsonSerializer.Deserialize<string>(await _browser.ExecuteScriptAsync(YouTubePage.OpenTranscriptScript(id, !requested)).WaitAsync(cancel));
+            if (state == "opening") requested = true;
             if (state == "ready") { opened = true; break; }
             await Task.Delay(500, cancel);
         }
@@ -236,14 +238,7 @@ internal sealed partial class YouTubeWindow : Window
         if (_closed || revision != _revision || id != _videoId) throw new InvalidOperationException("영상이 바뀌었습니다. 현재 영상의 자막을 다시 불러오세요.");
         var transcript = YouTubePage.ParseTranscript(raw, id);
         // The app keeps the loaded transcript; return the web page to its video after reading.
-        await _browser.ExecuteScriptAsync("""
-            (()=>{
-              const panel=[...document.querySelectorAll('ytd-engagement-panel-section-list-renderer')].find(e=>e.getAttribute('target-id')==='engagement-panel-searchable-transcript' && e.getAttribute('visibility')==='ENGAGEMENT_PANEL_VISIBILITY_EXPANDED');
-              const close=panel?.querySelector('#visibility-button button, button[aria-label="닫기"], button[aria-label="Close"]');
-              if(close)close.click();
-              requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelector('#movie_player')?.scrollIntoView({block:'center'})));
-            })()
-            """);
+        await _browser.ExecuteScriptAsync(YouTubePage.CloseTranscriptScript(id)).WaitAsync(cancel);
         cancel.ThrowIfCancellationRequested();
         if (_closed || revision != _revision || id != _videoId) throw new InvalidOperationException("영상이 바뀌었습니다. 현재 영상의 자막을 다시 불러오세요.");
         return transcript;

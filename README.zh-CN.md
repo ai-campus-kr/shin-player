@@ -45,7 +45,7 @@
 
 ## 快速开始
 
-1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
+1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
 2. 运行 **`Install.cmd`**。无需管理员权限，也无需单独安装 .NET。
 3. 在开始菜单打开 **신플레이어**，将视频拖入窗口，或点击 **영상 열기**（打开视频）。
 
@@ -198,10 +198,10 @@
 
 ## YouTube 与视频 AI 聊天 — 0.6 测试版
 
-**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)
+**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10)
 
 1. 在顶部常驻的 **地址栏** 输入 YouTube 地址，然后按 **Enter** 或 **→**。按 **Alt+D / Ctrl+U** 可选中地址。可以省略 `https://`，例如直接输入 `youtube.com`。应用内的 **Edge WebView2** 会打开正常的 YouTube 页面。
-2. **打开视频后自动加载字幕。** 没有字幕时显示 **“자막이 없는 영상입니다”**（该视频没有字幕）。宽窗口的聊天面板在右侧，窄窗口在下方，也可通过 **채팅 배치** 选择位置。
+2. **打开视频后自动加载字幕。** 没有字幕时显示 **“자막이 없는 영상입니다”**（该视频没有字幕）。宽窗口的聊天面板在右侧，窄窗口在下方，也可通过 **채팅 배치** 选择位置。 同时支持旧版字幕面板及新版 **视频信息 → 字幕** 页面。
 3. 在 **API 설정** 窗口保存自己的 OpenAI 密钥。绿色 **✓ API 키 저장됨** 表示已保存。点击 **연결 확인**（检查连接）测试 API，成功后显示 **✓ API 연결 확인됨**。普通提问保持播放位置，通过 **“跳到那里”** 或依据时间按钮跳转。
 
 本地视频打开 **AI / Ctrl+J** 后自动读取内嵌文本字幕，依次优先选择韩语、默认轨道、第一条轨道。不使用外部 SRT、图片字幕、OCR 或语音转写。
@@ -303,4 +303,4 @@ Shin Player 自身源码采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 한
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.10) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)
