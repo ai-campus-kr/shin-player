@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,16 +56,15 @@ internal sealed record GifOptions(double Start, double End, int Width, int Fps, 
     }
 }
 
-internal abstract class GifSource(string title, double duration, bool browser)
+internal abstract class GifSource(string title, double duration)
 {
     internal string Title { get; } = title;
     internal double Duration { get; } = duration;
-    internal bool IsBrowser { get; } = browser;
     internal abstract Task<double> PositionAsync();
     internal abstract Task<string> ExportAsync(CaptureTools tools, GifOptions options, string pictures, IProgress<string> progress, CancellationToken cancel);
 }
 
-internal sealed class LocalGifSource(SubtitleVideo video, Func<double> position) : GifSource(Path.GetFileNameWithoutExtension(video.Path), video.Duration, false)
+internal sealed class LocalGifSource(SubtitleVideo video, Func<double> position) : GifSource(Path.GetFileNameWithoutExtension(video.Path), video.Duration)
 {
     internal override Task<double> PositionAsync() => Task.FromResult(position());
     internal override Task<string> ExportAsync(CaptureTools tools, GifOptions options, string pictures, IProgress<string> progress, CancellationToken cancel)
@@ -126,24 +123,5 @@ internal static class GifExport
             if (partial != null && File.Exists(partial)) File.Delete(partial);
             CaptureTools.RemovePrivateDirectory(temp, TempRoot);
         }
-    }
-
-    internal static async Task<string> EncodeFramesAsync(CaptureTools tools, IReadOnlyList<(string File, double Time)> frames,
-        string temp, GifOptions options, string title, string pictures, IProgress<string> progress, CancellationToken cancel)
-    {
-        if (frames.Count == 0) throw new InvalidOperationException("캡처된 화면이 없습니다.");
-        var manifest = new StringBuilder("ffconcat version 1.0\n");
-        for (int i = 0; i < frames.Count; i++)
-        {
-            // Only generated numeric filenames are permitted in this manifest.
-            var name = Path.GetFileName(frames[i].File);
-            if (name != $"frame{i:D5}.png") throw new InvalidOperationException("잘못된 캡처 파일입니다.");
-            var end = i + 1 < frames.Count ? frames[i + 1].Time : options.Length;
-            manifest.Append($"file '{name}'\nduration {Number(Math.Max(.001, end - frames[i].Time))}\n");
-        }
-        manifest.Append($"file '{Path.GetFileName(frames[^1].File)}'\n");
-        string list = Path.Combine(temp, "frames.ffconcat");
-        await File.WriteAllTextAsync(list, manifest.ToString(), new UTF8Encoding(false), cancel);
-        return await EncodeAsync(tools, ["-protocol_whitelist", "file,pipe", "-f", "concat", "-safe", "1", "-i", list], "0:v:0", options, title, pictures, progress, cancel);
     }
 }

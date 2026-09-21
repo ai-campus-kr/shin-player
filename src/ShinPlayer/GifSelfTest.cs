@@ -1,5 +1,3 @@
-using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Wpf;
 using System;
 using System.IO;
 using System.Linq;
@@ -232,10 +230,6 @@ public partial class MainWindow
             }
             finally { dialog.Close(); }
         });
-        await test("gif-browser-pixels-crop-timing-and-state-restore", async () => await TestBrowserGifAsync(tools, fixtures, output, false));
-        await test("gif-browser-cancel-restores-state-and-removes-temp", async () => await TestBrowserGifAsync(tools, fixtures, output, true));
-        await test("gif-browser-resumes-original-playing-state", async () => await TestBrowserGifAsync(tools, fixtures, output, false, true));
-        await test("gif-browser-speed-compresses-timeline-once", async () => await TestBrowserGifAsync(tools, fixtures, output, false, false, 2.5));
     }
 
     private static async Task VerifyGifAsync(string path, GifOptions options, CaptureTools tools, string output, (double At, int Color)[]? checkpoints = null)
@@ -253,71 +247,9 @@ public partial class MainWindow
             int index = json.RootElement.GetProperty("frames").EnumerateArray().Select((frame, i) => new { Index = i, Time = double.Parse(frame.GetProperty("pts_time").GetString()!, System.Globalization.CultureInfo.InvariantCulture) }).Last(frame => frame.Time <= at + .000001).Index;
             await CaptureTools.RunAsync(tools.Ffmpeg, ["-v", "error", "-i", path, "-vf", $"select='eq(n,{index})'", "-frames:v", "1", "-update", "1", "-y", png], output, CancellationToken.None);
             var frame = LoadPixels(png); int center = (frame.Height / 2 * frame.Width + frame.Width / 2) * 4;
-            // WebView2 applies the display color profile; verify the dominant scene color, not exact RGB.
+            // Verify the dominant scene color after GIF palette quantization.
             if (frame.Pixels[center + color] < 90 || Enumerable.Range(0, 3).Any(c => c != color && frame.Pixels[center + c] > 65))
-                throw new Exception("GIF frame timing or browser crop is wrong at " + at);
+                throw new Exception("GIF frame timing is wrong at " + at);
         }
-    }
-    private async Task<object> TestBrowserGifAsync(CaptureTools tools, string fixtures, string output, bool cancelTest, bool playing = false, double speed = 1)
-    {
-        var browser = new WebView2();
-        var window = new Window { Owner = this, Content = browser, Width = 900, Height = 660, ShowActivated = false, ShowInTaskbar = false };
-        bool valid = true;
-        string tempRoot = Path.Combine(output, cancelTest ? "browser-gif-cancel" : playing ? "browser-gif-resume" : "browser-gif");
-        var tempBefore = Directory.GetDirectories(GifExport.TempRoot).ToHashSet();
-        window.Show();
-        try
-        {
-            var environment = await CoreWebView2Environment.CreateAsync(null, Path.Combine(output, "gif-browser-profile"));
-            await browser.EnsureCoreWebView2Async(environment);
-            browser.CoreWebView2.SetVirtualHostNameToFolderMapping("shinplayer.test", fixtures, CoreWebView2HostResourceAccessKind.DenyCors);
-            var loaded = new TaskCompletionSource<bool>();
-            browser.CoreWebView2.NavigationCompleted += (_, e) => loaded.TrySetResult(e.IsSuccess);
-            browser.NavigateToString("""
-                <!doctype html><html><head><title>GIF browser fixture</title><style>body{margin:0;background:#fff}#movie_player{margin:50px 80px}video{width:640px;height:360px}</style></head><body>
-                <ytd-watch-flexy video-id="M7lc1UVf-VE"></ytd-watch-flexy><div id="movie_player"><video preload="auto" src="https://shinplayer.test/캡처%20'테스트%20[한글].mp4"></video></div>
-                <p>THIS PAGE TEXT MUST NEVER APPEAR IN THE GIF</p></body></html>
-                """);
-            if (!await loaded.Task.WaitAsync(TimeSpan.FromSeconds(15))) throw new Exception("GIF fixture navigation failed");
-            await WaitUntilAsync(() => browser.CoreWebView2 != null, TimeSpan.FromSeconds(3));
-            for (int i = 0; i < 100; i++)
-            {
-                if (await browser.ExecuteScriptAsync("document.querySelector('video').readyState>=2") == "true") break;
-                await Task.Delay(50);
-            }
-            await browser.ExecuteScriptAsync("(()=>{const v=document.querySelector('video');v.currentTime=5.2;v.pause();v.playbackRate=1.5;v.muted=false;})()");
-            await Task.Delay(150);
-            var source = await BrowserGifSource.CreateAsync(browser, window, () => valid, CancellationToken.None);
-            if (playing) await browser.ExecuteScriptAsync("(()=>{const v=document.querySelector('video');v.addEventListener('play',()=>{if(window.__shinGif)window.__sawGif=true;else if(window.__sawGif)window.__restored={time:v.currentTime,paused:v.paused,rate:v.playbackRate,muted:v.muted};});v.currentTime=1;v.muted=true;v.play();})()");
-            var options = new GifOptions(1, 5, 480, 12, speed);
-            using var cancel = new CancellationTokenSource();
-            string? path = null;
-            try
-            {
-                path = await source.ExportAsync(tools, options, tempRoot, new ImmediateProgress<string>(message => { if (cancelTest && message.StartsWith("화면 캡처")) cancel.Cancel(); }), cancel.Token);
-                if (cancelTest) throw new Exception("Browser capture ignored cancellation");
-            }
-            catch (OperationCanceledException) when (cancelTest) { }
-            await Task.Delay(100);
-            using var state = JsonDocument.Parse(await browser.ExecuteScriptAsync("(()=>{const v=document.querySelector('video');return {time:v.currentTime,paused:v.paused,muted:v.muted,rate:v.playbackRate,session:!!window.__shinGif,restored:window.__restored||null}})()"));
-            var s = state.RootElement;
-            var restoredTime = s.GetProperty("time").GetDouble();
-            // The six-second fixture can finish while FFmpeg encodes. Validate the actual
-            // resume event instead of assuming encoding always takes less than three seconds.
-            var resumed = s.GetProperty("restored");
-            bool correctTime = playing ? resumed.ValueKind == JsonValueKind.Object && resumed.GetProperty("time").GetDouble() is >= 1 and < 1.5 && !resumed.GetProperty("paused").GetBoolean() && resumed.GetProperty("rate").GetDouble() == 1.5 && resumed.GetProperty("muted").GetBoolean() : Math.Abs(restoredTime - 5.2) < .1;
-            bool correctPause = playing ? !s.GetProperty("paused").GetBoolean() || restoredTime >= source.Duration - .1 : s.GetProperty("paused").GetBoolean();
-            if (!correctTime || !correctPause || s.GetProperty("muted").GetBoolean() != playing || s.GetProperty("rate").GetDouble() != 1.5 || s.GetProperty("session").GetBoolean()) throw new Exception("Browser playback not restored: " + s);
-            if (Directory.GetDirectories(GifExport.TempRoot).Any(x => !tempBefore.Contains(x))) throw new Exception("Browser frames leaked");
-            if (path != null) await VerifyGifAsync(path, options, tools, output);
-            await browser.ExecuteScriptAsync("document.querySelector('#movie_player').classList.add('ad-showing')");
-            try { await source.PositionAsync(); throw new Exception("Ad accepted"); } catch (InvalidOperationException) { }
-            await browser.ExecuteScriptAsync("document.querySelector('#movie_player').className='ytp-live'");
-            try { await source.PositionAsync(); throw new Exception("Live stream accepted"); } catch (InvalidOperationException) { }
-            valid = false;
-            try { await source.PositionAsync(); throw new Exception("Changed video accepted"); } catch (InvalidOperationException) { }
-            return new { path, cancelTest, stateRestored = true, adRejected = true, navigationRejected = true, renderedPixelsOnly = true };
-        }
-        finally { valid = false; browser.Dispose(); window.Close(); }
     }
 }

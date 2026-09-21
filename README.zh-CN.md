@@ -26,7 +26,7 @@
 
 ## 把精彩片段变成 GIF
 
-点击本地播放器或 YouTube 窗口的 **GIF**，**拖动时间轴两端的手柄**选择片段，再点击 **GIF 만들기**（制作 GIF）。拖动中间的选中区域，可在保持时长的同时移动整个片段。
+在本地播放器中打开视频文件，点击 **GIF**，**拖动时间轴两端的手柄**选择片段，再点击 **GIF 만들기**（制作 GIF）。拖动中间的选中区域，可在保持时长的同时移动整个片段。
 
 - 使用 **선택 확대**（放大选区）和 **전체 보기**（查看全片）精细调整短片段。选中手柄后，方向键每次调整0.1秒，配合Shift为1秒，配合Ctrl为10秒。
 - 仍可直接输入开始、结束时间，或使用 **현재 위치**（当前位置），这些操作与时间轴双向同步。
@@ -35,12 +35,9 @@
 - 原视频片段最长 **1 小时**，成品 GIF 为 **0.2 秒–5 分钟**。最长边 **360 / 480 / 720px**，**10 / 12 / 15 / 20fps**。无声循环播放。
 - 保存至 Windows **图片 → 신플레이어 GIF**，文件名包含日期、视频名称和时间范围，不覆盖已有文件。
 - **本地视频：** 转换原视频的指定片段，不改变播放位置。
-- **YouTube：** 实时截取浏览器显示的视频区域，画面中的字幕和浮层也可能被录入。完成或取消后恢复位置、速度、静音及播放状态。
 - 无需字幕或 API 密钥。**不消耗 GPT Token。** 首次使用时准备 FFmpeg。
 
-**YouTube 倍速作用于保存的 GIF；截图录制仍需原片段长度的时间。**
-
-录制期间请保持 YouTube 窗口显示，不要跳转或调整窗口大小。不支持广告、直播和受保护的视频。实际流畅度取决于电脑的截图速度。
+**GIF 制作仅支持本地视频文件，不提供 YouTube GIF 截取功能。**
 
 <p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="实际 GIF 界面：拖动手柄选择区间、移动选区、放大与时间输入同步"></p>
 
@@ -48,7 +45,7 @@
 
 ## 快速开始
 
-1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
+1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
 2. 运行 **`Install.cmd`**。无需管理员权限，也无需单独安装 .NET。
 3. 在开始菜单打开 **신플레이어**，将视频拖入窗口，或点击 **영상 열기**（打开视频）。
 
@@ -201,7 +198,7 @@
 
 ## YouTube 与视频 AI 聊天 — 0.6 测试版
 
-**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7)
+**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)
 
 1. 在顶部常驻的 **地址栏** 输入 YouTube 地址，然后按 **Enter** 或 **→**。按 **Alt+D / Ctrl+U** 可选中地址。可以省略 `https://`，例如直接输入 `youtube.com`。应用内的 **Edge WebView2** 会打开正常的 YouTube 页面。
 2. 打开 YouTube 的 **更多 → 显示转录文稿**，然后点击视频旁 **聊天面板 → 자막 불러오기**（加载字幕）。宽窗口放在右侧，窄窗口放在下方。也可通过 **채팅 배치**（聊天布局）手动选择位置。
@@ -305,4 +302,4 @@ Shin Player 自身源码采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 한
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)

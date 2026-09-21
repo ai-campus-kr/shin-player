@@ -26,7 +26,7 @@
 
 ## 好きな場面を GIF に
 
-ローカル動画・YouTube ウィンドウの **GIF** ボタンから、**タイムライン両端のハンドルをドラッグ**して区間を選び、**GIF 만들기**（GIF 作成）を押します。選択範囲の中央をドラッグすると、長さを保ったまま区間を移動できます。
+ローカル動画ファイルを開き、プレーヤーの **GIF** ボタンから、**タイムライン両端のハンドルをドラッグ**して区間を選び、**GIF 만들기**（GIF 作成）を押します。選択範囲の中央をドラッグすると、長さを保ったまま区間を移動できます。
 
 - **선택 확대**（選択範囲を拡大）と **전체 보기**（全体表示）で短い区間も調整できます。ハンドルにフォーカスし、矢印キーで0.1秒、Shift併用で1秒、Ctrl併用で10秒ずつ移動します。
 - 時刻の直接入力と **현재 위치**（現在位置）も引き続き使え、タイムラインと相互に連動します。
@@ -35,12 +35,9 @@
 - 元動画の区間は最大**1時間**、完成 GIF は**0.2秒〜5分**。最大辺 **360 / 480 / 720px**、**10 / 12 / 15 / 20fps**。音声なしのループ再生です。
 - Windows の **ピクチャ → 신플레이어 GIF** に日付・動画名・区間を含む名前で保存。既存ファイルは上書きしません。
 - **ローカル:** 元動画の指定区間を変換し、再生位置は変えません。
-- **YouTube:** ブラウザーに表示された動画領域を実時間でキャプチャ。字幕や重なった案内も写る場合があります。完了・キャンセル後は位置・速度・ミュート・再生状態を復元します。
 - 字幕・API キーは不要。**GPT トークンは使いません。** FFmpeg は初回利用時に準備します。
 
-**YouTube の倍速は保存する GIF に適用されます。キャプチャ自体には元の区間と同じ時間がかかります。**
-
-キャプチャ中は YouTube ウィンドウを表示したままにし、シーク・サイズ変更を避けてください。広告・ライブ配信・保護された動画は非対応です。滑らかさは PC のキャプチャ速度に依存します。
+**GIF 作成はローカル動画ファイルのみ対応します。YouTube の GIF キャプチャ機能は提供していません。**
 
 <p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="実際の GIF 画面：ドラッグで区間選択・移動、拡大と時刻入力の連動"></p>
 
@@ -48,7 +45,7 @@
 
 ## 使い始める
 
-1. [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7)から `ShinPlayer-バージョン-win-x64.zip` をダウンロードし、すべて展開します。
+1. [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)から `ShinPlayer-バージョン-win-x64.zip` をダウンロードし、すべて展開します。
 2. **`Install.cmd`** を実行します。管理者権限や .NET の別途インストールは不要です。
 3. スタートメニューから **신플레이어** を開き、動画をドラッグ＆ドロップするか、**영상 열기**（動画を開く）を押します。
 
@@ -201,7 +198,7 @@ DRM で保護された動画、破損ファイル、特殊な独自形式の再�
 
 ## YouTube と動画 AI チャット — 0.6 ベータ
 
-**「この内容を説明して」→ 字幕に基づいて回答。「その部分へ移動して」→ 再生位置を移動。** [ベータ版をダウンロード](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7)
+**「この内容を説明して」→ 字幕に基づいて回答。「その部分へ移動して」→ 再生位置を移動。** [ベータ版をダウンロード](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)
 
 1. 上部に常時表示される **アドレスバー** に YouTube の URL を入力し、**Enter** または **→** を押します。**Alt+D / Ctrl+U** でアドレスを選択できます。`youtube.com` のように `https://` を省略できます。アプリ内の **Edge WebView2** で通常の YouTube ページを開きます。
 2. YouTube の **もっと見る → 文字起こしを表示**を開き、動画横の **チャットパネル → 자막 불러오기**（字幕を読み込む）を押します。広いウィンドウでは右側、狭いウィンドウでは下側に表示されます。**채팅 배치**（チャット配置）で手動選択もできます。
@@ -305,4 +302,4 @@ Shin Player 本体のソースは [MIT ライセンス](LICENSE)で公開して�
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7) · [不具合報告・機能の提案](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新リリース](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8) · [不具合報告・機能の提案](https://github.com/ai-campus-kr/shin-player/issues)

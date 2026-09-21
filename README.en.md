@@ -26,7 +26,7 @@ A Windows video player with fine speed control, audio boost, and batch frame cap
 
 ## Turn a moment into a GIF
 
-Click **GIF** in the local player or YouTube window. **Drag the two timeline handles** to select a segment, then choose **GIF 만들기** (create GIF). Drag the selected area to move the entire segment while preserving its length.
+Open a local video file and click **GIF** in the player. **Drag the two timeline handles** to select a segment, then choose **GIF 만들기** (create GIF). Drag the selected area to move the entire segment while preserving its length.
 
 - **선택 확대** (zoom to selection) and **전체 보기** (full timeline) make short segments easier to adjust. Focus a handle and use arrow keys for 0.1-second adjustments, Shift for 1 second, or Ctrl for 10 seconds.
 - Typed start/end times and **현재 위치** (current position) remain available and stay synchronized with the timeline.
@@ -35,12 +35,9 @@ Click **GIF** in the local player or YouTube window. **Drag the two timeline han
 - Select up to **1 hour** of source video; output length **0.2 seconds–5 minutes**. Maximum dimension **360 / 480 / 720px**, **10 / 12 / 15 / 20fps**. Silent, looping output.
 - Saves to Windows **Pictures → 신플레이어 GIF**, with date, video title and time range. Existing files are preserved.
 - **Local files:** converts the original video segment without changing playback position.
-- **YouTube:** captures the rendered video area in real time. Visible captions and overlays may appear. Completion or cancellation restores position, speed, mute and play/pause state.
 - No subtitles or API key required. **No GPT tokens used.** FFmpeg is prepared on first use.
 
-**For YouTube, speed applies to the saved GIF. Capturing still takes the original segment duration.**
-
-Keep the YouTube window visible and avoid seeking or resizing during capture. Ads, live streams and protected videos are unsupported. Actual smoothness depends on the PC's capture speed.
+**GIF creation supports local video files only. YouTube GIF capture is not available.**
 
 <p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="Actual GIF dialog: draggable range handles, segment movement, zoom and synchronized time fields"></p>
 
@@ -48,7 +45,7 @@ Keep the YouTube window visible and avoid seeking or resizing during capture. Ad
 
 ## Quick start
 
-1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7)** and extract the entire archive.
+1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)** and extract the entire archive.
 2. Run **`Install.cmd`**. No administrator privileges or separate .NET installation are required.
 3. Open **신플레이어** from the Start menu, then drop a video onto it or click **영상 열기** (Open video).
 
@@ -201,7 +198,7 @@ Playback is not guaranteed for DRM-protected videos, damaged files, or specializ
 
 ## YouTube and video chat — 0.6 beta
 
-**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7)
+**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)
 
 1. Enter a YouTube address in the always-visible top **address bar**, then press **Enter** or **→**. **Alt+D / Ctrl+U** selects the address. You can omit `https://`, for example `youtube.com`. The app opens the normal YouTube page in **Edge WebView2**.
 2. Open YouTube's **More → Show transcript**, then choose **자막 불러오기** (Load subtitles) in the **docked chat panel**. It appears on the right in wide windows and below in narrow windows. **채팅 배치** (Chat placement) also lets you choose the position.
@@ -305,4 +302,4 @@ Shin Player’s own source is released under the [MIT license](LICENSE). Copyrig
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)

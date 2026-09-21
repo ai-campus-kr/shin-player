@@ -283,6 +283,9 @@ internal sealed partial class YouTubeWindow
         {
             window.Show(); await window.Initialization;
             window.UpdateLayout();
+            var toolbar = (System.Windows.Controls.DockPanel)((System.Windows.Controls.DockPanel)window.Content).Children[0];
+            if (toolbar.Children.OfType<System.Windows.Controls.Button>().Any(button => button.Content?.ToString()?.Contains("GIF", StringComparison.OrdinalIgnoreCase) == true))
+                throw new Exception("YouTube toolbar still offers GIF export");
             if (Math.Abs(window._browser.ActualWidth - window._browserFrame.ActualWidth) > 1 || Math.Abs(window._browser.ActualHeight - window._browserFrame.ActualHeight) > 1)
                 throw new Exception("WebView2 does not fill its browser frame");
             // WebView2 owns a native surface; this screenshot labels the synthetic layout preview explicitly.
@@ -301,7 +304,7 @@ internal sealed partial class YouTubeWindow
                 window._chat.VerifyLayout();
                 OnlineSelfTest.Capture(window, Path.Combine(output, $"youtube-chat-{width:0}-{placement}.png"));
             }
-            return new { layouts = 4, embeddedPanel = true, overlaps = false, realYouTube = false };
+            return new { layouts = 4, embeddedPanel = true, overlaps = false, gifExportOffered = false, realYouTube = false };
         }
         finally { window.Close(); }
     }

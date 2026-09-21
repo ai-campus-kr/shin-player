@@ -26,7 +26,7 @@
 
 ## 마음에 드는 구간을 GIF로
 
-로컬 영상도, 유튜브도 **GIF** 버튼으로 움직이는 짤을 만드세요. **타임라인의 양 끝 손잡이를 드래그**해 구간을 고르고 **GIF 만들기**를 누르면 됩니다. 가운데 선택 영역을 끌면 길이를 유지하며 구간을 옮깁니다.
+로컬 영상 파일을 열고 **GIF** 버튼으로 움직이는 짤을 만드세요. **타임라인의 양 끝 손잡이를 드래그**해 구간을 고르고 **GIF 만들기**를 누르면 됩니다. 가운데 선택 영역을 끌면 길이를 유지하며 구간을 옮깁니다.
 
 - **선택 확대 / 전체 보기**로 짧은 구간도 정밀하게 조절합니다. 손잡이에서 방향키는 0.1초, Shift는 1초, Ctrl은 10초씩 이동합니다.
 - 시작·끝 시간 직접 입력과 **현재 위치** 버튼도 사용할 수 있으며 타임라인과 서로 연동됩니다.
@@ -35,12 +35,9 @@
 - 원본 구간 최대 **1시간**, 완성 GIF **0.2초~5분**. 최대 크기 **360 / 480 / 720px**, **10 / 12 / 15 / 20fps**. 무음 반복 재생입니다.
 - Windows **사진 → 신플레이어 GIF**에 날짜·영상 이름·구간을 담아 저장합니다. 같은 이름은 덮어쓰지 않습니다.
 - **로컬:** 원본 영상 구간을 변환합니다. 재생 위치는 그대로 유지됩니다.
-- **유튜브:** 앱 브라우저에 보이는 영상 영역을 실시간 캡처합니다. 화면의 자막·겹쳐진 안내도 포함될 수 있습니다. 완료·취소 후 원래 위치, 배속, 음소거, 재생 상태를 복원합니다.
 - 자막과 API 키가 없어도 됩니다. **GPT 토큰을 사용하지 않습니다.** FFmpeg는 첫 사용에 준비합니다.
 
-**유튜브 배속은 완성 GIF에 적용하며, 캡처에는 원본 구간 길이만큼 시간이 걸립니다.**
-
-유튜브 캡처 중에는 창을 열어 두고 재생 위치·창 크기를 바꾸지 마세요. 광고, 실시간 방송, 보호된 영상은 지원하지 않습니다. 실제 부드러움은 PC의 화면 캡처 속도에 따라 달라집니다.
+**GIF 만들기는 로컬 영상 파일만 지원합니다. 유튜브 GIF 기능은 제공하지 않습니다.**
 
 <p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="신플레이어 GIF 구간 선택: 드래그 손잡이, 선택 영역 이동, 확대와 시간 입력 연동"></p>
 
@@ -48,7 +45,7 @@
 
 ## 빠른 시작
 
-1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
+1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
 2. `Install.cmd`를 실행합니다. 관리자 권한과 별도 .NET 설치는 필요하지 않습니다.
 3. 시작 메뉴의 **신플레이어**를 열고 영상 파일을 끌어놓거나 **영상 열기**를 누릅니다.
 
@@ -216,7 +213,7 @@ DRM으로 보호된 영상, 손상된 파일, 특수한 독점 형식까지 모�
 
 ## 유튜브와 영상 AI 채팅 — 0.6 베타
 
-**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [베타 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7)
+**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [베타 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)
 
 1. 항상 표시되는 상단 **주소창**에 유튜브 주소를 입력하고 **Enter** 또는 **→**를 누릅니다. **Alt+D / Ctrl+U**로 주소를 선택할 수 있으며, `youtube.com`처럼 `https://`를 생략해도 됩니다. 앱 내부의 **Edge WebView2 브라우저**로 일반 유튜브 페이지를 엽니다.
 2. 유튜브 설명의 **더보기 → 스크립트 표시**를 연 뒤 영상 옆 **채팅 패널 → 자막 불러오기**를 누릅니다. 넓은 창에서는 오른쪽, 좁은 창에서는 아래쪽에 표시됩니다. **채팅 배치**에서 위치를 직접 선택할 수도 있습니다.
@@ -320,4 +317,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.7) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)

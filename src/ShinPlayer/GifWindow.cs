@@ -148,7 +148,7 @@ internal sealed class GifWindow : Window
             StartTime.Text = GifOptions.Time(position); EndTime.Text = GifOptions.Time(Math.Min(_source.Duration, position + 5));
             _title.Text = _source.Title;
             _tools = await CaptureTools.EnsureAsync(new Progress<string>(value => { if (!_closed) _status.Text = value; }), _cancelSource.Token);
-            _status.Text = _source.IsBrowser ? "배속은 완성 GIF에 적용합니다. 유튜브 캡처에는 원본 구간 시간만큼 걸립니다. 창을 열어 두세요. 완료 후 원래 재생 상태로 돌아갑니다." : "선택 구간을 지정한 배속으로 변환합니다. 재생 중인 영상의 위치·속도는 바뀌지 않습니다.";
+            _status.Text = "선택 구간을 지정한 배속으로 변환합니다. 재생 중인 영상의 위치·속도는 바뀌지 않습니다.";
         }
         catch (OperationCanceledException) { _status.Text = "준비를 취소했습니다."; }
         catch (Exception ex) { _status.Text = ex.Message; }
