@@ -45,7 +45,7 @@ Open a local video file and click **GIF** in the player. **Drag the two timeline
 
 ## Quick start
 
-1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)** and extract the entire archive.
+1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)** and extract the entire archive.
 2. Run **`Install.cmd`**. No administrator privileges or separate .NET installation are required.
 3. Open **신플레이어** from the Start menu, then drop a video onto it or click **영상 열기** (Open video).
 
@@ -198,19 +198,20 @@ Playback is not guaranteed for DRM-protected videos, damaged files, or specializ
 
 ## YouTube and video chat — 0.6 beta
 
-**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)
+**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)
 
 1. Enter a YouTube address in the always-visible top **address bar**, then press **Enter** or **→**. **Alt+D / Ctrl+U** selects the address. You can omit `https://`, for example `youtube.com`. The app opens the normal YouTube page in **Edge WebView2**.
-2. Open YouTube's **More → Show transcript**, then choose **자막 불러오기** (Load subtitles) in the **docked chat panel**. It appears on the right in wide windows and below in narrow windows. **채팅 배치** (Chat placement) also lets you choose the position.
-3. Save your own OpenAI key under **API 설정** (API settings). Ordinary questions leave playback in place. Explicitly ask **“Go to that part”** or click a supporting timestamp to seek.
+2. **Subtitles load automatically when you open a video.** If none are available, the panel shows **“자막이 없는 영상입니다”** (This video has no subtitles). Chat sits on the right in wide windows and below in narrow windows; **채팅 배치** selects its position.
+3. Save your OpenAI key in the **API 설정** window. A green **✓ API 키 저장됨** confirms local storage. **연결 확인** (Check connection) tests the API and shows **✓ API 연결 확인됨** on success. Ordinary questions keep playback in place; **“Go to that part”** or a supporting timestamp seeks.
 
-For local video, use **AI / Ctrl+J → 자막 불러오기** and select a language if needed. Only **embedded text subtitles** qualify. External SRT, image subtitles, OCR and speech transcription are excluded.
+For local videos, **AI / Ctrl+J** automatically reads embedded text subtitles, preferring Korean, then the default track, then the first track. External SRT, image subtitles, OCR and speech transcription are excluded.
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.2/docs/screenshots/v0.6.0-beta.2/02-youtube-chat.png" width="1000" alt="YouTube and docked AI chat"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.9/docs/screenshots/v0.6.0-beta.9/01-api-settings.png" width="430" alt="API key saved status"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.9/docs/screenshots/v0.6.0-beta.9/02-chat-ready.png" width="430" alt="Automatic subtitles and chat"></p>
 
-<sub>The address bar and docked chat panel, verified with a real YouTube video and the GPT-5.4-mini API.</sub>
+<sub>Actual app windows captured with an isolated test key and synthetic subtitles. No real API key is displayed.</sub>
 
 - Model: **`gpt-5.4-mini`**. Keys are encrypted for the current Windows user at `%LOCALAPPDATA%\ShinPlayer\openai-key.dat` and can be deleted in the app.
+- Automatic subtitle loading needs no API key or tokens. **Check connection** sends a tiny request without video or subtitles and uses a small number of tokens.
 - Asking sends your **question, previous question and answer, video label and selected subtitle text** to OpenAI, never video or audio files. Your account's charges and limits apply. Each response shows input/output token usage.
 - Long transcripts use local candidate selection within a 60,000-character budget including per-cue overhead. A **partial search** notice appears; context may be missed.
 - Missing evidence, invalid answers, cancelled requests and responses after window closure or video changes cannot trigger seeking. Seeking is blocked during ads.
@@ -218,7 +219,7 @@ For local video, use **AI / Ctrl+J → 자막 불러오기** and select a langua
 
 Missing WebView2 Runtime opens Microsoft's installation guidance. YouTube login, region and video restrictions still apply. **외부 열기** opens the default browser, without AI seek integration. Web videos use YouTube's controls; local mpv speed, audio boost and batch capture settings do not apply. No stream extraction or downloader is used.
 
-**Beta validation:** Passed 87 integration checks and live `gpt-5.4-mini` API checks. A real YouTube video supplied 301 Korean transcript cues: an ordinary question preserved playback position, then “Go to the part you just explained” sought to 10:45 without another API request. Subtitle availability, ads, login requirements and site changes may affect other videos.
+**Beta verification:** 86 integration checks cover saved/verified key states, automatic/missing/stale subtitles, chat layouts and local GIF export. Real YouTube subtitle loading, GPT-5.4-mini answers and seeking were also tested separately. Transcript availability and site changes can affect other videos.
 
 Audio boost and local subtitle capture still work **on your PC without API keys or token costs**.
 
@@ -226,7 +227,7 @@ Audio boost and local subtitle capture still work **on your PC without API keys 
 
 A native Windows app built with C# / .NET 8 WPF and mpv. Local playback uses mpv; the optional YouTube window uses Edge WebView2. No development server is needed.
 
-The 0.6 beta has **87 integration checks** using WPF/libmpv and isolated WebView2. API tests use mock responses; live-service validation limits are described above. See the [changelog](CHANGELOG.md).
+The 0.6 beta has **86 integration checks** using WPF/libmpv and isolated WebView2. API tests use mock responses; live-service validation limits are described above. See the [changelog](CHANGELOG.md).
 
 <details>
 <summary><strong>Build and install from source</strong></summary>
@@ -272,7 +273,7 @@ Timing measurements use synthetic 640×360 media on the development PC. `loadMs`
 
 Capture checks use separate synthetic MP4/MKV files. They verify embedded track selection, actual frame colors at subtitle midpoints, Korean text in PNGs, the no-subtitle option, duplicate output, partial results after cancellation, worker-process termination, playback-position preservation, and the capture dialog. Test images are saved only under `artifacts`.
 
-There are 87 integration checks. Seeking covers 28 points across two window sizes and playlist states, repeated input before layout refresh, release position, capture loss, file changes, and full screen. WPF layout transforms from 1× to 2× are tested; physical mouse input and real monitor-DPI changes are not automated. UI checks render all four styles at startup and minimum size, plus playlists and capture dialogs, checking for overlapping buttons and subtitle-selection visibility. Settings serialization, backward compatibility, selection buttons, and position/speed preservation during live style changes are also covered.
+There are 86 integration checks. Seeking covers 28 points across two window sizes and playlist states, repeated input before layout refresh, release position, capture loss, file changes, and full screen. WPF layout transforms from 1× to 2× are tested; physical mouse input and real monitor-DPI changes are not automated. UI checks render all four styles at startup and minimum size, plus playlists and capture dialogs, checking for overlapping buttons and subtitle-selection visibility. Settings serialization, backward compatibility, selection buttons, and position/speed preservation during live style changes are also covered.
 
 Audio-boost checks play synthetic PCM audio while muted and measure peak/RMS levels at the mpv filter output. They verify the actual gain of every preset, the limiter at maximum boost, restoration when disabled, initial state restoration, rapid adjustment, and preservation of other filters.
 
@@ -302,4 +303,4 @@ Shin Player’s own source is released under the [MIT license](LICENSE). Copyrig
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)

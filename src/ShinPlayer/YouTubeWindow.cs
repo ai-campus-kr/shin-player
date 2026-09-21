@@ -28,6 +28,8 @@ internal sealed partial class YouTubeWindow : Window
     private bool _closed, _ready;
     private string _requestedUrl, _videoId = "";
     private int _revision;
+    private int _automaticTranscriptRevision = -1;
+    private Task _automaticTranscriptTask = Task.CompletedTask;
     private WindowState _beforeFullscreen;
     internal Task Initialization { get; private set; } = Task.CompletedTask;
     internal YouTubeWindow(string url, string? testProfileDirectory = null, ApiKeyStore? keys = null)
@@ -39,7 +41,7 @@ internal sealed partial class YouTubeWindow : Window
         Width = 1280; Height = 820; MinWidth = 840; MinHeight = 620;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _chat = new VideoChatPanel(ReadTranscriptAsync, SeekAsync, keys: keys);
-        _chat.ResetTranscript("유튜브 영상의 ‘스크립트 표시’를 연 뒤 자막을 불러오세요. 질문에 답하고, 이동을 요청하면 해당 구간으로 이동합니다.");
+        _chat.ResetTranscript("영상이 열리면 자막을 자동으로 불러옵니다.");
         _chatFrame.Child = _chat;
         _chatFrame.SetResourceReference(Border.BackgroundProperty, "Panel");
         _chatFrame.SetResourceReference(Border.BorderBrushProperty, "Line");
@@ -68,7 +70,7 @@ internal sealed partial class YouTubeWindow : Window
         DockPanel.SetDock(footer, Dock.Bottom); root.Children.Add(footer);
         root.Children.Add(_workspace); Content = root;
         _address.Text = url;
-        _status.Text = "유튜브 페이지를 그대로 재생합니다. 자막 검색은 영상 설명의 ‘스크립트 표시’를 연 뒤 이용하세요.";
+        _status.Text = "유튜브 영상을 열면 자막을 자동으로 확인합니다. 질문과 구간 이동을 바로 이용하세요.";
         _status.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         go.Click += (_, _) => NavigateInput();
         _address.KeyDown += (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; NavigateInput(); } };
@@ -131,7 +133,7 @@ internal sealed partial class YouTubeWindow : Window
                     return;
                 }
                 _revision++;
-                _chat.ResetTranscript("페이지가 바뀌었습니다. 영상의 스크립트를 열고 자막을 다시 불러오세요.");
+                _chat.ResetTranscript("영상의 자막을 자동으로 확인하는 중…");
             };
             _browser.CoreWebView2.SourceChanged += (_, _) =>
             {
@@ -139,14 +141,16 @@ internal sealed partial class YouTubeWindow : Window
                 if (id != _videoId)
                 {
                     _revision++;
-                    _chat.ResetTranscript(id.Length > 0 ? "영상이 바뀌었습니다. ‘스크립트 표시’를 연 뒤 자막을 불러오세요." : "유튜브 영상을 먼저 열어주세요.");
+                    _chat.ResetTranscript(id.Length > 0 ? "영상의 자막을 자동으로 확인하는 중…" : "유튜브 영상을 먼저 열어주세요.");
                 }
                 _videoId = id; _address.Text = _browser.Source?.AbsoluteUri ?? "";
                 _chatButton.IsEnabled = id.Length > 0;
+                StartAutomaticTranscript();
             };
             _browser.CoreWebView2.NavigationCompleted += (_, e) =>
             {
                 if (!e.IsSuccess) _status.Text = "페이지를 열지 못했습니다. 인터넷 연결을 확인하거나 ‘브라우저에서 열기’를 사용하세요.";
+                else StartAutomaticTranscript();
             };
             _browser.CoreWebView2.NewWindowRequested += (_, e) => { e.Handled = true; if (e.IsUserInitiated) OpenExternal(e.Uri); };
             _browser.CoreWebView2.PermissionRequested += (_, e) => e.State = CoreWebView2PermissionState.Deny;
@@ -195,10 +199,38 @@ internal sealed partial class YouTubeWindow : Window
         _requestedUrl = normalized; _address.Text = normalized;
         if (_ready) _browser.CoreWebView2.Navigate(normalized);
     }
+    private void StartAutomaticTranscript()
+    {
+        if (_closed || !_ready || _videoId.Length == 0 || _automaticTranscriptRevision == _revision) return;
+        int revision = _automaticTranscriptRevision = _revision;
+        _automaticTranscriptTask = LoadAfterNavigationAsync();
+        async Task LoadAfterNavigationAsync()
+        {
+            // Allow the ordinary page/SPA navigation to attach its video controls.
+            await Task.Delay(600);
+            if (_closed || revision != _revision) return;
+            await _chat.LoadAsync();
+        }
+    }
     private async Task<VideoTranscript> ReadTranscriptAsync(CancellationToken cancel)
     {
         if (_closed || !_ready || _videoId.Length == 0) throw new InvalidOperationException("유튜브 영상을 먼저 열어주세요.");
         string id = _videoId; int revision = _revision;
+        bool opened = false;
+        string? state = null;
+        for (int attempt = 0; attempt < 30; attempt++)
+        {
+            cancel.ThrowIfCancellationRequested();
+            if (_closed || revision != _revision || id != _videoId) throw new InvalidOperationException("영상이 바뀌었습니다. 현재 영상의 자막을 다시 불러오세요.");
+            state = JsonSerializer.Deserialize<string>(await _browser.ExecuteScriptAsync(YouTubePage.OpenTranscriptScript(id)).WaitAsync(cancel));
+            if (state == "ready") { opened = true; break; }
+            await Task.Delay(500, cancel);
+        }
+        if (!opened)
+        {
+            if (state == "waiting") throw new NoTranscriptException();
+            throw new InvalidOperationException("자막을 불러오지 못했습니다. 페이지를 새로고침해 주세요.");
+        }
         var raw = await _browser.ExecuteScriptAsync(YouTubePage.ReadTranscriptScript).WaitAsync(cancel);
         cancel.ThrowIfCancellationRequested();
         if (_closed || revision != _revision || id != _videoId) throw new InvalidOperationException("영상이 바뀌었습니다. 현재 영상의 자막을 다시 불러오세요.");

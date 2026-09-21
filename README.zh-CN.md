@@ -45,7 +45,7 @@
 
 ## 快速开始
 
-1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
+1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
 2. 运行 **`Install.cmd`**。无需管理员权限，也无需单独安装 .NET。
 3. 在开始菜单打开 **신플레이어**，将视频拖入窗口，或点击 **영상 열기**（打开视频）。
 
@@ -198,19 +198,20 @@
 
 ## YouTube 与视频 AI 聊天 — 0.6 测试版
 
-**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8)
+**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9)
 
 1. 在顶部常驻的 **地址栏** 输入 YouTube 地址，然后按 **Enter** 或 **→**。按 **Alt+D / Ctrl+U** 可选中地址。可以省略 `https://`，例如直接输入 `youtube.com`。应用内的 **Edge WebView2** 会打开正常的 YouTube 页面。
-2. 打开 YouTube 的 **更多 → 显示转录文稿**，然后点击视频旁 **聊天面板 → 자막 불러오기**（加载字幕）。宽窗口放在右侧，窄窗口放在下方。也可通过 **채팅 배치**（聊天布局）手动选择位置。
-3. 在 **API 설정**（API 设置）保存自己的 OpenAI 密钥并提问。普通问题不会改变播放位置。明确要求 **“跳到那里”** 或点击依据时间按钮才会跳转。
+2. **打开视频后自动加载字幕。** 没有字幕时显示 **“자막이 없는 영상입니다”**（该视频没有字幕）。宽窗口的聊天面板在右侧，窄窗口在下方，也可通过 **채팅 배치** 选择位置。
+3. 在 **API 설정** 窗口保存自己的 OpenAI 密钥。绿色 **✓ API 키 저장됨** 表示已保存。点击 **연결 확인**（检查连接）测试 API，成功后显示 **✓ API 연결 확인됨**。普通提问保持播放位置，通过 **“跳到那里”** 或依据时间按钮跳转。
 
-本地视频使用 **AI / Ctrl+J → 자막 불러오기**，必要时选择语言。仅支持 **内嵌文本字幕**，不使用外部 SRT、图片字幕、OCR 或语音转写。
+本地视频打开 **AI / Ctrl+J** 后自动读取内嵌文本字幕，依次优先选择韩语、默认轨道、第一条轨道。不使用外部 SRT、图片字幕、OCR 或语音转写。
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.2/docs/screenshots/v0.6.0-beta.2/02-youtube-chat.png" width="1000" alt="YouTube and docked AI chat"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.9/docs/screenshots/v0.6.0-beta.9/01-api-settings.png" width="430" alt="API key saved status"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.9/docs/screenshots/v0.6.0-beta.9/02-chat-ready.png" width="430" alt="Automatic subtitles and chat"></p>
 
-<sub>使用真实 YouTube 视频与 GPT-5.4-mini API 验证的地址栏及聊天面板。</sub>
+<sub>实际应用使用隔离的测试密钥与合成字幕生成的设置和聊天截图。未显示真实 API 密钥。</sub>
 
 - 模型为 **`gpt-5.4-mini`**。密钥按当前 Windows 用户加密，保存在 `%LOCALAPPDATA%\ShinPlayer\openai-key.dat`，可在应用内删除。
+- 自动加载字幕不需要 API 密钥或 Token。**检查连接**仅发送不含视频或字幕的简短请求，消耗少量 Token。
 - 提问时将 **问题、上一轮问题和回答、视频名称和选定字幕文本**发送给 OpenAI，不发送视频或音频文件。费用和额度适用自己的账户，每次显示输入/输出 Token 数。
 - 长字幕先在本地筛选候选片段，包括每条字幕附加信息在内，控制在 60,000 字符预算中。会提示 **部分搜索**，可能遗漏上下文。
 - 没有依据、响应无效、取消、关闭窗口或更换视频后的响应不会改变播放位置。广告播放期间也不跳转。
@@ -218,7 +219,7 @@
 
 缺少 WebView2 Runtime 时会提供 Microsoft 官方安装说明。YouTube 的登录、地区及视频限制仍然适用。**외부 열기**可打开默认浏览器，但 AI 跳转不连接该外部窗口。网页视频使用 YouTube 自身控件，本地 mpv 的倍速、音量增强和批量截图设置不适用。不使用视频流提取或下载工具。
 
-**测试版验证范围：** 已通过 87 项集成检查和真实 `gpt-5.4-mini` API 检查。从真实 YouTube 视频读取了 301 条韩语字幕：普通问题保持播放位置，“跳到刚才解释的部分”则跳到 10:45，无需再次调用 API。字幕可用性、广告、登录要求和网站变化可能影响其他视频。
+**测试版验证范围：** 86 项集成检查涵盖密钥保存与连接状态、字幕自动加载、无字幕与视频切换、聊天布局及本地 GIF。另行验证了真实 YouTube 字幕自动加载、GPT-5.4-mini 回答及时间跳转。字幕可用性和网站变化可能影响其他视频。
 
 音量增强和本地字幕截图仍然 **在 PC 上处理，无需 API 密钥或 Token 费用**。
 
@@ -226,7 +227,7 @@
 
 使用 C# / .NET 8 WPF 和 mpv 构建的 Windows 原生应用，本地播放使用 mpv，可选 YouTube 功能使用 Edge WebView2，无需开发服务器。
 
-0.6 测试版使用 WPF/libmpv 和隔离 WebView2 的 **87 项集成检查**验证。API 使用模拟响应，真实服务验证范围见上文。[更新日志](CHANGELOG.md)
+0.6 测试版使用 WPF/libmpv 和隔离 WebView2 的 **86 项集成检查**验证。API 使用模拟响应，真实服务验证范围见上文。[更新日志](CHANGELOG.md)
 
 <details>
 <summary><strong>从源码构建与安装</strong></summary>
@@ -272,7 +273,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 截图检查使用独立的合成 MP4/MKV，验证内嵌轨道选择、字幕中间时刻的实际帧颜色、PNG 中的韩语文字、不含字幕选项、重复保存、取消后的部分结果保留、工作进程终止、播放位置保持以及截图窗口。检查图片仅保存到 `artifacts` 下。
 
-共运行 87 项集成检查。定位检查覆盖两种窗口大小和播放列表状态下的 28 个位置，以及布局刷新前的重复输入、释放位置、鼠标捕获丢失、文件切换和全屏。也检查 1–2 倍 WPF 布局变换，但未自动化物理鼠标输入或实际显示器 DPI 变更。界面检查渲染四种风格的启动画面、最小窗口、播放列表和截图窗口，检查按钮重叠及字幕选择显示。还检查设置序列化、旧设置兼容性、选择按钮，以及播放时切换风格对位置和速度的保持。
+共运行 86 项集成检查。定位检查覆盖两种窗口大小和播放列表状态下的 28 个位置，以及布局刷新前的重复输入、释放位置、鼠标捕获丢失、文件切换和全屏。也检查 1–2 倍 WPF 布局变换，但未自动化物理鼠标输入或实际显示器 DPI 变更。界面检查渲染四种风格的启动画面、最小窗口、播放列表和截图窗口，检查按钮重叠及字幕选择显示。还检查设置序列化、旧设置兼容性、选择按钮，以及播放时切换风格对位置和速度的保持。
 
 音量增强检查在静音状态下播放合成 PCM 音频，并测量 mpv 滤镜输出的峰值／RMS。验证各档实际增益、最高档限幅、关闭后恢复原始幅度、初始设置恢复、快速连续调整以及其他滤镜的保留。
 
@@ -302,4 +303,4 @@ Shin Player 自身源码采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 한
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.8) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.9) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)

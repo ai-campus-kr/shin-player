@@ -19,6 +19,7 @@ namespace ShinPlayer;
 internal sealed record VideoTranscript(string Source, string Label, IReadOnlyList<SubtitleCue> Cues);
 internal sealed record ChatMatch(int CueId, double Start, string Quote);
 internal sealed record VideoChatReply(string Answer, IReadOnlyList<ChatMatch> Matches, int InputTokens, int OutputTokens, bool Partial, bool SeekRequested);
+internal sealed class NoTranscriptException() : InvalidOperationException("자막이 없는 영상입니다");
 
 internal sealed class ApiKeyStore
 {
@@ -30,6 +31,7 @@ internal sealed class ApiKeyStore
         _directory = directory ?? (app?.IsTest == true || app?.IsDiagnosticSession == true ? null : PlayerSettings.DirectoryPath);
     }
     private string KeyPath => Path.Combine(_directory!, "openai-key.dat");
+    internal bool HasSavedKey => _directory != null && File.Exists(KeyPath);
     internal string Load()
     {
         if (_directory == null) return "";
@@ -44,13 +46,14 @@ internal sealed class ApiKeyStore
     {
         if (_directory == null) throw new InvalidOperationException("진단 모드에서는 실제 API 키를 저장하지 않습니다.");
         key = key.Trim();
-        if (key.Length is < 12 or > 512 || key.Any(char.IsWhiteSpace))
+        if (key.Length is < 12 or > 512 || !key.StartsWith("sk-", StringComparison.Ordinal) || key.Any(char.IsWhiteSpace))
             throw new ArgumentException("올바른 OpenAI API 키를 입력해 주세요.");
         Directory.CreateDirectory(_directory);
         var encrypted = ProtectedData.Protect(Encoding.UTF8.GetBytes(key), null, DataProtectionScope.CurrentUser);
         var temporary = KeyPath + ".tmp";
         File.WriteAllBytes(temporary, encrypted);
         File.Move(temporary, KeyPath, true);
+        if (Load() != key) throw new IOException("저장한 키를 다시 읽지 못했습니다. 저장 위치의 권한을 확인하세요.");
     }
     internal void Delete() { if (_directory != null && File.Exists(KeyPath)) File.Delete(KeyPath); }
 }
@@ -62,6 +65,48 @@ internal sealed class VideoChatClient
     private static readonly HttpClient SharedHttp = new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(60), MaxResponseContentBufferSize = 1024 * 1024 };
     private readonly HttpClient _http;
     internal VideoChatClient(HttpClient? http = null) => _http = http ?? SharedHttp;
+
+    internal async Task CheckConnectionAsync(string key, CancellationToken cancel)
+    {
+        if (string.IsNullOrWhiteSpace(key)) throw new InvalidOperationException("API 키를 먼저 저장하세요.");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/responses");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key.Trim());
+        request.Content = new StringContent(JsonSerializer.Serialize(new
+        {
+            model = Model, store = false, input = "Reply only OK.",
+            reasoning = new { effort = "none" }, max_output_tokens = 16
+        }), Encoding.UTF8, "application/json");
+        using var response = await _http.SendAsync(request, cancel);
+        await EnsureSuccessAsync(response, cancel);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancel));
+        if (!body.RootElement.TryGetProperty("status", out var status) || status.GetString() != "completed")
+            throw new InvalidOperationException("인증은 통과했지만 모델 응답이 완료되지 않았습니다. 다시 확인하세요.");
+    }
+
+    private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancel)
+    {
+        if (response.IsSuccessStatusCode) return;
+        string? code = null;
+        try
+        {
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancel));
+            if (json.RootElement.TryGetProperty("error", out var error) && error.ValueKind == JsonValueKind.Object &&
+                error.TryGetProperty("code", out var value) && value.ValueKind == JsonValueKind.String) code = value.GetString();
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException) { }
+        // Map only known codes. Never expose provider messages, headers or credentials.
+        throw new InvalidOperationException(response.StatusCode switch
+        {
+            HttpStatusCode.Unauthorized => "API 키 인증에 실패했습니다. API 설정에서 유효한 키로 교체하세요.",
+            HttpStatusCode.Forbidden => "이 API 키에 모델 사용 권한이 없습니다. OpenAI 프로젝트 권한을 확인하세요.",
+            HttpStatusCode.NotFound => "gpt-5.4-mini 모델에 접근할 수 없습니다. 프로젝트의 모델 권한을 확인하세요.",
+            HttpStatusCode.TooManyRequests when code is "insufficient_quota" or "billing_hard_limit_reached" => "OpenAI API 크레딧 또는 사용 한도가 부족합니다. API 계정의 결제·한도를 확인하세요.",
+            HttpStatusCode.TooManyRequests when code is "organization_spend_limit_exceeded" or "project_spend_limit_exceeded" or "organization_usage_limit_exceeded" => "OpenAI 조직 또는 프로젝트의 사용 한도에 도달했습니다. API 계정의 한도를 확인하세요.",
+            HttpStatusCode.TooManyRequests => "OpenAI 요청 제한에 도달했습니다. 잠시 기다린 뒤 다시 시도하세요.",
+            HttpStatusCode.BadRequest => "OpenAI가 요청 형식을 거부했습니다. 신플레이어 업데이트를 확인하세요.",
+            _ => $"OpenAI 요청에 실패했습니다 (HTTP {(int)response.StatusCode}). 잠시 후 다시 시도하세요."
+        });
+    }
 
     internal static IReadOnlyList<int> SelectCues(IReadOnlyList<SubtitleCue> cues, string question)
     {
@@ -152,17 +197,7 @@ internal sealed class VideoChatClient
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key.Trim());
         request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
         using var response = await _http.SendAsync(request, cancel);
-        if (!response.IsSuccessStatusCode)
-        {
-            // Never echo a provider response, authorization header, transcript, or signed URL into logs.
-            throw new InvalidOperationException(response.StatusCode switch
-            {
-                HttpStatusCode.Unauthorized => "API 키를 확인해 주세요. OpenAI 인증에 실패했습니다.",
-                HttpStatusCode.Forbidden => "이 API 키에는 모델 사용 권한이 없습니다.",
-                HttpStatusCode.TooManyRequests => "OpenAI 사용 한도 또는 요청 제한에 도달했습니다. 계정의 크레딧과 한도를 확인하세요.",
-                _ => $"OpenAI 요청에 실패했습니다 (HTTP {(int)response.StatusCode}). 잠시 후 다시 시도하세요."
-            });
-        }
+        await EnsureSuccessAsync(response, cancel);
         var content = await response.Content.ReadAsStringAsync(cancel);
         try { return ParseReply(content, transcript.Cues, ids, partial); }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or FormatException or OverflowException)

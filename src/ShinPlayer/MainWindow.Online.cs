@@ -84,21 +84,10 @@ public partial class MainWindow
             var tools = await CaptureTools.EnsureAsync(new Progress<string>(message => StatusText.Text = message), cancel);
             var capture = new SubtitleCapture(tools);
             var video = await capture.ProbeAsync(path, cancel);
-            if (video.Tracks.Count == 0) throw new InvalidOperationException("내장 텍스트 자막이 없습니다. 외부 자막·음성 받아쓰기·OCR은 AI 분석에 사용하지 않습니다.");
+            if (video.Tracks.Count == 0) throw new NoTranscriptException();
             cancel.ThrowIfCancellationRequested();
             if (_currentPath != path || _closed) throw new InvalidOperationException("영상이 바뀌었습니다.");
             var track = video.Tracks.FirstOrDefault(t => t.Language is "ko" or "kor") ?? video.Tracks.FirstOrDefault(t => t.Default) ?? video.Tracks[0];
-            if (video.Tracks.Count > 1)
-            {
-                var choose = new ComboBox { ItemsSource = video.Tracks, DisplayMemberPath = nameof(SubtitleTrack.Label), SelectedItem = track, MinHeight = 36, Margin = new(0, 12, 0, 16) };
-                var apply = new Button { Content = "이 자막으로 질문하기", IsDefault = true, Style = (Style)FindResource("Primary") };
-                var panel = new StackPanel { Margin = new(22) };
-                panel.Children.Add(new TextBlock { Text = "분석할 내장 자막", FontSize = 20 }); panel.Children.Add(choose); panel.Children.Add(apply);
-                var dialog = new Window { Title = "내장 자막 선택", Style = (Style)FindResource(typeof(Window)), Owner = _videoChat, Width = 480, SizeToContent = SizeToContent.Height, WindowStartupLocation = WindowStartupLocation.CenterOwner, Content = panel };
-                apply.Click += (_, _) => dialog.DialogResult = true;
-                if (dialog.ShowDialog() != true) throw new OperationCanceledException();
-                track = (SubtitleTrack)choose.SelectedItem;
-            }
             return await VideoTranscriptLoader.ExtractAsync(tools, video, track, _player?.Number("sub-delay") ?? 0, cancel);
         }, async (transcript, time) =>
         {

@@ -36,39 +36,24 @@ internal sealed partial class YouTubeWindow
                 await File.WriteAllTextAsync(Path.Combine(output, "live-youtube.json"), JsonSerializer.Serialize(new { passed = true, mode = "layout-only", apiCalled = false, browserWidth = window._browser.ActualWidth, browserHeight = window._browser.ActualHeight }));
                 return 0;
             }
-            VideoTranscript? transcript = null;
-            string lastError = "YouTube transcript was not available.";
-            using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(100));
-            for (int i = 0; i < 45; i++)
+            // YouTube can replace the initial page with a theme/consent navigation.
+            // Follow the active automatic load, not a task from the outgoing page.
+            for (int attempt = 0; attempt < 30; attempt++)
             {
-                // Click only controls rendered by the normal YouTube page. No private transcript endpoint.
-                await window._browser.ExecuteScriptAsync("""
-                    (()=>{
-                      const visible=e=>e && e.getBoundingClientRect().height>0;
-                      const buttons=[...document.querySelectorAll('button')];
-                      const transcript=buttons.find(e=>visible(e) && /^(show transcript|스크립트 표시|文字起こしを表示)$/i.test((e.innerText||e.getAttribute('aria-label')||'').trim()));
-                      if(transcript){transcript.click();return 'opened';}
-                      const expand=document.querySelector('ytd-watch-metadata #description-inline-expander #expand');
-                      if(visible(expand))expand.click();
-                      return 'waiting';
-                    })()
-                    """).WaitAsync(cancel.Token);
-                try { await window._chat.LoadAsync(); transcript = window._chat.TranscriptForTest; if (transcript != null) break; }
-                catch (InvalidOperationException ex) { lastError = ex.Message; }
-                await Task.Delay(800, cancel.Token);
+                var loading = window._automaticTranscriptTask;
+                await loading.WaitAsync(TimeSpan.FromSeconds(25));
+                if (ReferenceEquals(loading, window._automaticTranscriptTask) && window._chat.TranscriptForTest != null) break;
+                await Task.Delay(500);
             }
-            if (transcript == null)
-            {
-                await window.CaptureLiveAsync(Path.Combine(output, "youtube-transcript-unavailable.png"));
-                throw new InvalidOperationException(lastError);
-            }
+            var transcript = window._chat.TranscriptForTest ?? throw new InvalidOperationException("Automatic transcript load failed: " + window._chat.StatusForTest);
+            await File.WriteAllTextAsync(Path.Combine(output, "progress.json"), JsonSerializer.Serialize(new { phase = "waiting-for-video", subtitlesLoadedBeforeQuestion = true, cues = transcript.Cues.Count }));
             await WaitForContentAsync(window);
             // Pause so an ordinary answer can be proven not to move the playback cursor.
             await window._browser.ExecuteScriptAsync("document.querySelector('video')?.pause()");
             double before = await Position();
-            var cue = transcript.Cues.Skip(transcript.Cues.Count / 3).OrderByDescending(x => x.Text.Length).FirstOrDefault() ?? transcript.Cues[0];
-            string excerpt = cue.Text.Length > 100 ? cue.Text[..100] : cue.Text;
-            var answer = await window._chat.AskForLiveTestAsync($"자막의 ‘{excerpt}’는 어떤 내용인가요? 이동하지 말고 설명만 해주세요.");
+            await File.WriteAllTextAsync(Path.Combine(output, "progress.json"), JsonSerializer.Serialize(new { phase = "asking-api", cues = transcript.Cues.Count }));
+            // Navigation must load subtitles before any question; no test-only opening steps.
+            var answer = await window._chat.AskForLiveTestAsync("이 영상에서 다루는 핵심 내용을 설명해 주세요. 이동하지 말고 설명만 해주세요.");
             double afterAnswer = await Position();
             if (answer.SeekRequested || Math.Abs(afterAnswer - before) > .8) throw new InvalidOperationException("An ordinary question moved playback.");
             var seek = await window._chat.AskForLiveTestAsync("방금 설명한 부분으로 이동해줘");
@@ -80,7 +65,7 @@ internal sealed partial class YouTubeWindow
             await File.WriteAllTextAsync(Path.Combine(output, "seek-diagnostic.json"), JsonSerializer.Serialize(new { before, afterAnswer, expected = seek.Matches[0].Start, afterSeek }));
             if (Math.Abs(afterSeek - seek.Matches[0].Start) > 2) throw new InvalidOperationException("Browser cursor did not reach the requested subtitle.");
             await window.CaptureLiveAsync(Path.Combine(output, "youtube-chat-live.png"));
-            report = new { passed = true, model = VideoChatClient.Model, video = normalized, cues = transcript.Cues.Count, ordinaryQuestionKeptPosition = true, before, afterAnswer, requestedPosition = seek.Matches[0].Start, actualPosition = afterSeek, inputTokens = answer.InputTokens + seek.InputTokens, outputTokens = answer.OutputTokens + seek.OutputTokens };
+            report = new { passed = true, model = VideoChatClient.Model, video = normalized, subtitlesLoadedBeforeQuestion = true, cues = transcript.Cues.Count, ordinaryQuestionKeptPosition = true, before, afterAnswer, requestedPosition = seek.Matches[0].Start, actualPosition = afterSeek, inputTokens = answer.InputTokens + seek.InputTokens, outputTokens = answer.OutputTokens + seek.OutputTokens };
             exitCode = 0;
             async Task<double> Position() => JsonSerializer.Deserialize<double>(await window._browser.ExecuteScriptAsync("document.querySelector('video')?.currentTime ?? -1"));
         }
@@ -153,9 +138,9 @@ internal sealed partial class YouTubeWindow
 internal sealed partial class VideoChatPanel
 {
     internal VideoTranscript? TranscriptForTest => _transcript;
+    internal string StatusForTest => _status.Text;
     internal async Task<VideoChatReply> AskForLiveTestAsync(string question)
     {
-        if (_transcript == null) throw new InvalidOperationException("The chat panel has no transcript.");
         _question.Text = question; _lastReplyForTest = null;
         await AskAsync();
         return _lastReplyForTest ?? throw new InvalidOperationException(_status.Text);

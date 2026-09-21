@@ -145,6 +145,62 @@ internal static class OnlineSelfTest
             finally { keys.Delete(); }
             return Task.FromResult<object?>(new { encrypted = true, isolated = true });
         });
+        await test("api-connection-check-small-request-and-actionable-errors", async () =>
+        {
+            using var http = new HttpClient(new Handler(async (request, cancel) =>
+            {
+                Require(request.RequestUri!.AbsoluteUri == "https://api.openai.com/v1/responses" && request.Headers.Authorization?.Parameter == TestKey, "Unexpected connection check destination or credential");
+                using var json = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(cancel));
+                var root = json.RootElement;
+                Require(root.GetProperty("model").GetString() == VideoChatClient.Model && !root.GetProperty("store").GetBoolean(), "Wrong model/privacy");
+                Require(root.GetProperty("max_output_tokens").GetInt32() == 16 && root.GetProperty("input").GetString() == "Reply only OK.", "Connection test sends more than a minimal request");
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"status":"completed"}""") };
+            }));
+            await new VideoChatClient(http).CheckConnectionAsync(TestKey, CancellationToken.None);
+            foreach (var (status, code, expected) in new[] { (HttpStatusCode.Unauthorized, "invalid_api_key", "인증"), (HttpStatusCode.TooManyRequests, "insufficient_quota", "크레딧"), (HttpStatusCode.TooManyRequests, "rate_limit_exceeded", "요청 제한") })
+            {
+                using var failed = new HttpClient(new Handler((_, _) => Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent(JsonSerializer.Serialize(new { error = new { code, message = TestKey } })) })));
+                try { await new VideoChatClient(failed).CheckConnectionAsync(TestKey, CancellationToken.None); throw new Exception("Failed connection accepted"); }
+                catch (InvalidOperationException ex) { Require(ex.Message.Contains(expected) && !ex.Message.Contains(TestKey), "Missing useful error or credential leaked"); }
+            }
+            return new { smallCheck = true, errorsDistinguished = 3, liveApiCalled = false };
+        });
+        await test("api-settings-saved-verified-failed-and-deleted-states", async () =>
+        {
+            var keys = new ApiKeyStore(Path.Combine(output, "settings-test-key"));
+            bool verified = false, fail = false, replaceDuringCheck = false;
+            using var http = new HttpClient(new Handler((_, _) =>
+            {
+                if (replaceDuringCheck) keys.Save(TestKey + "-changed");
+                return Task.FromResult(fail ? new HttpResponseMessage(HttpStatusCode.Unauthorized) { Content = new StringContent("{}")} : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"status":"completed"}""") });
+            }));
+            var dialog = new ApiSettingsWindow(keys, new VideoChatClient(http), value => verified = value) { Owner = owner, ShowActivated = false };
+            try
+            {
+                dialog.Show();
+                Require(!dialog.CheckConnection.IsEnabled && !dialog.SaveKey.IsEnabled, "Missing key is testable");
+                dialog.KeyInput.Password = TestKey;
+                dialog.SaveKey.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+                Require(keys.Load() == TestKey && dialog.KeyInput.Password == "" && dialog.KeyState.Text.StartsWith("✓") && !verified, "Save did not clear input, confirm local storage, or falsely verified connection");
+                Require(dialog.CheckConnection.IsEnabled, "Saved key cannot be checked");
+                foreach (string design in new[] { "minimal", "studio", "light", "lime" })
+                {
+                    UiDesigns.ApplyPalette(UiDesigns.Get(design));
+                    Capture(dialog, Path.Combine(output, "api-settings-" + design + ".png"));
+                }
+                UiDesigns.ApplyPalette(UiDesigns.Get(((App)Application.Current).Settings.UiDesign));
+                await dialog.CheckAsync(); Require(verified && dialog.ConnectionState.Text.StartsWith("✓"), "Successful API connection is not visible");
+                Capture(dialog, Path.Combine(output, "api-settings-verified.png"));
+                fail = true; await dialog.CheckAsync();
+                Require(!verified && dialog.ConnectionState.Text.Contains("인증") && dialog.KeyState.Text.StartsWith("✓"), "Failed API test erased local saved state or kept verified state");
+                fail = false; replaceDuringCheck = true; await dialog.CheckAsync();
+                Require(!verified && !dialog.ConnectionState.Text.StartsWith("✓"), "A replaced key was marked verified by a request using the previous key");
+                dialog.RemoveKey.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+                Require(keys.Load() == "" && !dialog.CheckConnection.IsEnabled && !dialog.KeyState.Text.StartsWith("✓"), "Deleted key still appears saved");
+                return new { savedAndVerifiedSeparate = true, deleted = true, palettes = 4, liveApiCalled = false };
+            }
+            finally { dialog.Close(); keys.Delete(); UiDesigns.ApplyPalette(UiDesigns.Get(((App)Application.Current).Settings.UiDesign)); }
+        });
         await test("local-chat-reads-only-selected-embedded-text-track", async () =>
         {
             var tools = await CaptureTools.EnsureAsync(new Progress<string>(), CancellationToken.None);
@@ -158,6 +214,8 @@ internal static class OnlineSelfTest
         });
         await test("chat-window-answer-seek-no-match-cancel-and-close", async () =>
             await VideoChatPanel.TestFlowAsync(owner, output));
+        await test("chat-transcript-failure-and-navigation-before-api", async () =>
+            await VideoChatPanel.TestAutoloadAsync());
         await test("youtube-docked-chat-responsive-layout", async () =>
             await YouTubeWindow.TestLayoutAsync(owner, output));
         await test("webview2-runtime-transcript-and-seek-offline-fixture", async () =>
@@ -181,13 +239,19 @@ internal static class OnlineSelfTest
                 <h1 class="ytd-watch-metadata">Synthetic subtitle fixture</h1>
                 <ytd-watch-flexy video-id="M7lc1UVf-VE"></ytd-watch-flexy>
                 <div id="movie_player"><video muted preload="auto" src="https://shinplayer.test/한글%20영상%20sample.mp4"></video></div>
-                <ytd-engagement-panel-section-list-renderer target-id="engagement-panel-searchable-transcript" visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED">
+                <ytd-watch-metadata><div id="description-inline-expander"><button id="expand" onclick="document.querySelector('#show-transcript').hidden=false;this.hidden=true">더보기</button></div></ytd-watch-metadata>
+                <button id="show-transcript" hidden onclick="document.querySelector('ytd-engagement-panel-section-list-renderer').setAttribute('visibility','ENGAGEMENT_PANEL_VISIBILITY_EXPANDED')">스크립트 표시</button>
+                <ytd-engagement-panel-section-list-renderer target-id="engagement-panel-searchable-transcript" visibility="ENGAGEMENT_PANEL_VISIBILITY_HIDDEN">
                   <ytd-transcript-segment-renderer><span class="segment-timestamp">0:02</span><span class="segment-text">테스트 자막 첫 번째</span></ytd-transcript-segment-renderer>
                   <ytd-transcript-segment-renderer><span class="segment-timestamp">0:05</span><span class="segment-text">테스트 자막 두 번째</span></ytd-transcript-segment-renderer>
                   <ytd-transcript-footer-renderer><button>한국어</button></ytd-transcript-footer-renderer>
                 </ytd-engagement-panel-section-list-renderer></body></html>
                 """);
             Require(await loaded.Task.WaitAsync(TimeSpan.FromSeconds(15)), "Fixture navigation failed");
+            var open = YouTubePage.OpenTranscriptScript(TestId).Replace("new URL(location.href)", $"new URL('https://www.youtube.com/watch?v={TestId}')");
+            Require(await browser.ExecuteScriptAsync(open) == "\"waiting\"", "Description was not expanded");
+            Require(await browser.ExecuteScriptAsync(open) == "\"opening\"", "Show transcript was not clicked");
+            Require(await browser.ExecuteScriptAsync(open) == "\"ready\"", "Transcript was not made available");
             var script = YouTubePage.ReadTranscriptScript.Replace("new URL(location.href)", $"new URL('https://www.youtube.com/watch?v={TestId}')");
             var transcript = YouTubePage.ParseTranscript(await browser.ExecuteScriptAsync(script), TestId);
             Require(transcript.Cues.Count == 2 && transcript.Cues[1].Start == 5, "DOM transcript read failed");
@@ -206,7 +270,9 @@ internal static class OnlineSelfTest
             await browser.ExecuteScriptAsync("document.querySelector('ytd-engagement-panel-section-list-renderer').setAttribute('visibility','ENGAGEMENT_PANEL_VISIBILITY_HIDDEN')");
             var hidden = await browser.ExecuteScriptAsync(script);
             Reject(() => YouTubePage.ParseTranscript(hidden, TestId));
-            return new { runtime = environment.BrowserVersionString, transcriptCues = 2, position, adSeekRejected = true, liveYouTubeTest = false };
+            var stale = YouTubePage.OpenTranscriptScript("otherVideo1").Replace("new URL(location.href)", $"new URL('https://www.youtube.com/watch?v={TestId}')");
+            Require(await browser.ExecuteScriptAsync(stale) == "\"changed\"", "Stale transcript opened");
+            return new { runtime = environment.BrowserVersionString, autoOpenedTranscript = true, transcriptCues = 2, position, adSeekRejected = true, liveYouTubeTest = false };
         }
         finally { browser.Dispose(); window.Close(); }
     }
@@ -227,14 +293,14 @@ internal sealed partial class VideoChatPanel
     {
         var keys = new ApiKeyStore(Path.Combine(output, "test-chat-key"));
         keys.Save(OnlineSelfTest.TestKey);
-        int calls = 0, seeks = 0;
+        int calls = 0, seeks = 0, loads = 0;
         var pending = new TaskCompletionSource<HttpResponseMessage>();
         using var http = new HttpClient(new OnlineSelfTest.Handler((_, _) =>
         {
             calls++;
             return calls < 3 ? Task.FromResult(OnlineSelfTest.Reply(calls == 1 ? new[] { 1 } : Array.Empty<int>(), seek: false)) : pending.Task;
         }));
-        var panel = new VideoChatPanel(_ => Task.FromResult(OnlineSelfTest.Transcript), (_, time) =>
+        var panel = new VideoChatPanel(_ => { loads++; return Task.FromResult(OnlineSelfTest.Transcript); }, (_, time) =>
         {
             if (time != 2.2) throw new Exception("Wrong seek position");
             seeks++; return Task.CompletedTask;
@@ -244,10 +310,11 @@ internal sealed partial class VideoChatPanel
         try
         {
             window.Show(); await panel.LoadAsync();
-            if (!panel._send.IsEnabled) throw new Exception("Chat not ready");
-            panel._apiSettings.IsExpanded = true;
+            panel._question.Text = "초록 장면 설명해줘";
+            if (calls != 0 || loads != 1 || !panel._send.IsEnabled) throw new Exception("Automatic transcript load called API or did not prepare chat");
             OnlineSelfTest.Capture(window, Path.Combine(output, "chat-ready.png"));
-            panel._question.Text = "초록 장면 설명해줘"; await panel.AskAsync();
+            await panel.AskAsync();
+            if (loads != 1 || !panel._keyState.Text.Contains("연결 확인됨")) throw new Exception("Question did not load transcript and confirm API connection");
             if (seeks != 0 || panel._messages.Children.Count < 4) throw new Exception("Ordinary answer moved playback or lost evidence");
             panel._question.Text = "그 부분으로 이동해줘"; await panel.AskAsync();
             if (seeks != 1 || panel._messages.Children.Count < 4) throw new Exception("Answer did not seek");
@@ -271,6 +338,36 @@ internal sealed partial class VideoChatPanel
             return new { explicitSeeks = seeks, ordinaryAnswerKeptPosition = true, noMatchKeptPosition = true, changedVideoResponseIgnored = true, cancelledAndClosedResponsesIgnored = true, liveApiCalled = false };
         }
         finally { if (!panel._closed) window.Close(); keys.Delete(); }
+    }
+
+    internal static async Task<object> TestAutoloadAsync()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "ShinPlayer-chat-test-" + Guid.NewGuid().ToString("N"));
+        var keys = new ApiKeyStore(directory); keys.Save(OnlineSelfTest.TestKey);
+        int calls = 0;
+        using var http = new HttpClient(new OnlineSelfTest.Handler((_, _) => { calls++; return Task.FromResult(OnlineSelfTest.Reply(new[] { 0 })); }));
+        var pending = new TaskCompletionSource<VideoTranscript>();
+        bool fail = true;
+        var panel = new VideoChatPanel(_ => fail ? Task.FromException<VideoTranscript>(new InvalidOperationException("스크립트가 없는 영상입니다.")) : pending.Task, (_, _) => Task.CompletedTask, new VideoChatClient(http), keys);
+        try
+        {
+            panel._question.Text = "설명해줘"; await panel.AskAsync();
+            if (calls != 0 || panel._question.Text != "설명해줘" || !panel._status.Text.Contains("스크립트") || !panel._send.IsEnabled)
+                throw new Exception("Transcript failure called API, lost typed question, or left send disabled");
+            fail = false; var asking = panel.AskAsync(); panel.ResetTranscript("새 영상");
+            pending.SetResult(OnlineSelfTest.Transcript); await asking;
+            if (calls != 0 || panel._status.Text != "새 영상") throw new Exception("Stale transcript called API");
+            var missing = new VideoChatPanel(_ => Task.FromException<VideoTranscript>(new NoTranscriptException()), (_, _) => Task.CompletedTask, new VideoChatClient(http));
+            try
+            {
+                await missing.LoadAsync(); missing._question.Text = "질문"; await missing.AskAsync();
+                if (calls != 0 || missing._status.Text != "자막이 없는 영상입니다" || missing._send.IsEnabled)
+                    throw new Exception("Absent transcript does not show the requested state or still calls API");
+            }
+            finally { missing.Close(); }
+            return new { missingTranscriptDidNotCallApi = true, noKeyNeededToCheckTranscript = true, questionPreserved = true, navigationCancelled = true };
+        }
+        finally { panel.Close(); keys.Delete(); Directory.Delete(directory); }
     }
 }
 
@@ -316,7 +413,7 @@ internal sealed partial class VideoChatPanel
     {
         UpdateLayout();
         var viewport = new Rect(-1, -1, ActualWidth + 2, ActualHeight + 2);
-        foreach (FrameworkElement control in new FrameworkElement[] { _question, _send, _scroll })
+        foreach (FrameworkElement control in new FrameworkElement[] { _question, _send, _scroll, _heading })
         {
             var bounds = control.TransformToAncestor(this).TransformBounds(new Rect(control.RenderSize));
             if (!viewport.Contains(bounds) || bounds.Width < 150 || bounds.Height < 20) throw new Exception("Chat controls are clipped");

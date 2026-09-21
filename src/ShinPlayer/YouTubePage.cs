@@ -53,6 +53,26 @@ internal static class YouTubePage
 
     // Read only the transcript rendered by YouTube's normal page. No private API,
     // stream URL, cookies, browser profile, or network response is extracted.
+    internal static string OpenTranscriptScript(string id) => """
+    (() => {
+      const url = new URL(location.href);
+      const id = url.searchParams.get('v') || url.pathname.split('/')[2] || '';
+      const watch = document.querySelector('ytd-watch-flexy');
+      if (id !== EXPECTED_ID || (watch?.getAttribute('video-id') && watch.getAttribute('video-id') !== id)) return 'changed';
+      const panel = [...document.querySelectorAll('ytd-engagement-panel-section-list-renderer')]
+        .find(e => e.getAttribute('target-id') === 'engagement-panel-searchable-transcript' &&
+          e.getAttribute('visibility') === 'ENGAGEMENT_PANEL_VISIBILITY_EXPANDED');
+      if (panel) return panel.querySelector('ytd-transcript-segment-renderer, .ytwTranscriptSegmentViewModelHost') ? 'ready' : 'loading';
+      const visible = e => e && !e.disabled && e.getBoundingClientRect().height > 0 && e.getBoundingClientRect().width > 0;
+      const transcript = [...document.querySelectorAll('button, [role="button"]')].find(e => visible(e) &&
+        /^(show transcript|스크립트 표시|文字起こしを表示|显示文字记录|顯示文字記錄|顯示轉錄稿)$/i.test((e.innerText || e.getAttribute('aria-label') || '').trim()));
+      if (transcript) { transcript.click(); return 'opening'; }
+      const expand = document.querySelector('ytd-watch-metadata #description-inline-expander #expand');
+      if (visible(expand)) expand.click();
+      return document.querySelector('ytd-watch-metadata #description-inline-expander') ? 'waiting' : 'loading';
+    })()
+    """.Replace("EXPECTED_ID", JsonSerializer.Serialize(id));
+
     internal const string ReadTranscriptScript = """
     (() => {
       const url = new URL(location.href);
@@ -63,7 +83,7 @@ internal static class YouTubePage
       const panel = [...document.querySelectorAll('ytd-engagement-panel-section-list-renderer')]
         .find(e => e.getAttribute('target-id') === 'engagement-panel-searchable-transcript' &&
           e.getAttribute('visibility') === 'ENGAGEMENT_PANEL_VISIBILITY_EXPANDED');
-      if (!panel) return {error:'유튜브 영상 설명의 더보기 → 스크립트 표시를 먼저 열어주세요. 스크립트가 없는 영상은 AI 검색을 사용할 수 없습니다.'};
+      if (!panel) return {error:'자막을 불러오지 못했습니다. 페이지를 새로고침해 주세요.'};
       const segments = [...panel.querySelectorAll('ytd-transcript-segment-renderer, .ytwTranscriptSegmentViewModelHost')];
       if (segments.length > 20000) return {error:'자막이 20,000개를 넘습니다. 이 스크립트는 지원 범위를 벗어났습니다.'};
       const parseTime = value => {

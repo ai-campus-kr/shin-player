@@ -39,6 +39,8 @@ internal static class UiDesigns
             ("Bg", design.Bg), ("Panel", design.Panel), ("Raised", design.Raised), ("Line", design.Line),
             ("Ink", design.Ink), ("Muted", design.Muted), ("Accent", design.Accent), ("AccentInk", design.AccentInk),
             ("StageBrush", design.Stage), ("Selected", design.Selected), ("HoverBrush", design.Ink),
+            ("SuccessInk", design.Id == "light" ? "#087A40" : "#35D580"),
+            ("WarningInk", design.Id == "light" ? "#A84E00" : "#FFBA66"),
             ("GifRangeAccent", design.Id == "minimal" ? "#66C9BB" : design.Accent),
             ("GifRangeFill", design.Id == "minimal" ? "#244C48" : design.Selected),
             ("GifRangeInk", design.Id == "minimal" ? "#CEF3EB" : design.Ink),
