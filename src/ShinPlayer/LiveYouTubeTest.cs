@@ -104,19 +104,22 @@ internal sealed partial class YouTubeWindow
         return exitCode;
     }
 
-    private static async Task WaitForContentAsync(YouTubeWindow window)
+    private static async Task WaitForContentAsync(YouTubeWindow window, int attempts = 600)
     {
-        for (int i = 0; i < 600; i++)
+        for (int i = 0; i < attempts; i++)
         {
             var state = await window._browser.ExecuteScriptAsync("""
                 (()=>{
+                  const visible=e=>e && e.getBoundingClientRect().height>0;
+                  const dismiss=[...document.querySelectorAll('button')].find(e=>visible(e) && /^(닫기|close|no thanks|나중에)$/i.test((e.innerText||e.getAttribute('aria-label')||'').trim()));
+                  if(dismiss)dismiss.click();
                   const player=document.querySelector('#movie_player'), video=player?.querySelector('video');
                   if(!video)return 'waiting';
                   video.muted=true;
                   const ad=player.classList.contains('ad-showing')||player.classList.contains('ad-interrupting');
                   if(!ad && Number.isFinite(video.duration) && video.duration>0 && video.readyState>=2)return 'content';
                   video.play().catch(()=>{});
-                  const skip=[...player.querySelectorAll('button, [role="button"]')].find(e=>e.getBoundingClientRect().height>0 && (/건너뛰기|skip ad|skip$/i.test((e.innerText||e.getAttribute('aria-label')||'').trim()) || /ytp-(ad-)?skip-ad?-?button/.test(e.className)));
+                  const skip=[...player.querySelectorAll('button, [role="button"], .ytpSkipAdButton, .ytp-skip-ad-button, .ytp-ad-skip-button, .ytp-ad-skip-button-modern')].find(e=>visible(e) && (/건너뛰기|skip ad|skip$/i.test((e.innerText||e.getAttribute('aria-label')||'').trim()) || /ytp-(ad-)?skip-ad?-?button|ytpSkipAdButton/.test(e.className)));
                   if(skip)skip.click();
                   return ad?'ad':'waiting';
                 })()

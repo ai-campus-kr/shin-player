@@ -34,6 +34,12 @@ public static class Program
             if (args.Length <= index + 2) { Console.Error.WriteLine("Usage: --self-test <fixture-directory> <report-directory>"); return 2; }
             return RunUi();
         }
+        if (args.Contains("--live-gif-test"))
+        {
+            int index = Array.IndexOf(args, "--live-gif-test");
+            if (args.Length <= index + 2) return 2;
+            return RunUi();
+        }
         if (args.Contains("--live-youtube-test"))
         {
             int index = Array.IndexOf(args, "--live-youtube-test");

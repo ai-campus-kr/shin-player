@@ -400,6 +400,7 @@ public partial class MainWindow
         });
         await RunSeekCoordinateTestsAsync(Test, fixtureDirectory);
         await RunCaptureTestsAsync(Test, fixtureDirectory, outputDirectory);
+        await RunGifTestsAsync(Test, fixtureDirectory, outputDirectory);
         await RunDesignTestsAsync(Test, fixtureDirectory, outputDirectory);
         await RunAudioTestsAsync(Test, fixtureDirectory, outputDirectory);
         await OnlineSelfTest.RunAsync(Test, fixtureDirectory, outputDirectory, this);

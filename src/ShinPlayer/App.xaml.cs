@@ -32,7 +32,7 @@ public partial class App : Application
     {
         base.OnStartup(e);
         DispatcherUnhandledException += (_, evt) => { Log(evt.Exception.ToString()); MessageBox.Show(evt.Exception.Message, "신플레이어", MessageBoxButton.OK, MessageBoxImage.Error); evt.Handled = true; };
-        IsTest = e.Args.Contains("--self-test") || e.Args.Contains("--live-youtube-test");
+        IsTest = e.Args.Contains("--self-test") || e.Args.Contains("--live-youtube-test") || e.Args.Contains("--live-gif-test");
         IsDiagnosticSession = e.Args.Contains("--diagnostic-session");
         // A saved boost value in the isolated runner also exercises engine startup restoration.
         Settings = IsTest || IsDiagnosticSession ? new PlayerSettings { Resume = false, Muted = true, AudioBoostDb = IsTest ? 6 : 0 } : PlayerSettings.Load();
@@ -50,7 +50,12 @@ public partial class App : Application
         ShowPlayer();
         if (IsTest)
         {
-            if (e.Args.Contains("--live-youtube-test"))
+            if (e.Args.Contains("--live-gif-test"))
+            {
+                int i = Array.IndexOf(e.Args, "--live-gif-test");
+                Environment.ExitCode = await YouTubeWindow.RunGifLiveTestAsync(_window!, e.Args[i + 1], e.Args[i + 2]);
+            }
+            else if (e.Args.Contains("--live-youtube-test"))
             {
                 _window!.Left = -16000; _window.ShowInTaskbar = false;
                 int i = Array.IndexOf(e.Args, "--live-youtube-test");
@@ -166,10 +171,11 @@ public partial class App : Application
         if (IsTest || IsDiagnosticSession) return;
         try { Settings.Save(); } catch (Exception ex) { Log(ex.ToString()); }
     }
-    public void Quit()
+    public async void Quit()
     {
         if (IsExiting) return;
         IsExiting = true;
+        if (_window != null) await _window.StopGifAsync();
         _window?.PrepareExit();
         SaveSettings();
         _window?.Close();

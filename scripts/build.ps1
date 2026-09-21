@@ -17,7 +17,7 @@ foreach ($framework in $runtimeConfig.runtimeOptions.includedFrameworks) {
     New-Item -ItemType Directory -Force -Path $licensePath | Out-Null
     Get-ChildItem -LiteralPath $packagePath -File | Where-Object { $_.Name -match 'LICENSE|NOTICE' } | Copy-Item -Destination $licensePath -Force
 }
-$webViewVersion = ([xml](Get-Content -LiteralPath (Join-Path $projectRoot 'src\ShinPlayer\ShinPlayer.csproj') -Raw)).Project.ItemGroup.PackageReference | Where-Object { $_.Include -eq 'Microsoft.Web.WebView2' } | Select-Object -ExpandProperty Version
+$webViewVersion = ([xml](Get-Content -LiteralPath (Join-Path $projectRoot 'src\ShinPlayer\ShinPlayer.csproj') -Raw -Encoding UTF8)).Project.ItemGroup.PackageReference | Where-Object { $_.Include -eq 'Microsoft.Web.WebView2' } | Select-Object -ExpandProperty Version
 $webViewPackage = Join-Path $nugetRoot ('microsoft.web.webview2\' + $webViewVersion)
 $webViewLicense = Join-Path $publishPath 'licenses\webview2-sdk'
 New-Item -ItemType Directory -Force -Path $webViewLicense | Out-Null

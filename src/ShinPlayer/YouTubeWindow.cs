@@ -55,10 +55,13 @@ internal sealed partial class YouTubeWindow : Window
         var reload = new Button { Content = "↻", ToolTip = "새로고침" };
         var go = new Button { Content = "이동" };
         var external = new Button { Content = "외부 열기", ToolTip = "기본 브라우저에서 열기" };
+        var gif = new Button { Content = "GIF", ToolTip = "선택 구간의 재생 화면을 GIF로 저장" };
+        gif.Click += (_, _) => ShowGif();
         toolbar.Children.Add(back); toolbar.Children.Add(forward); toolbar.Children.Add(reload);
         DockPanel.SetDock(_chatButton, Dock.Right); toolbar.Children.Add(_chatButton);
         DockPanel.SetDock(_placementButton, Dock.Right); toolbar.Children.Add(_placementButton);
         DockPanel.SetDock(external, Dock.Right); toolbar.Children.Add(external);
+        DockPanel.SetDock(gif, Dock.Right); toolbar.Children.Add(gif);
         DockPanel.SetDock(go, Dock.Right); toolbar.Children.Add(go); toolbar.Children.Add(_address);
         DockPanel.SetDock(toolbar, Dock.Top); root.Children.Add(toolbar);
         DockPanel.SetDock(_status, Dock.Bottom); root.Children.Add(_status);
@@ -83,7 +86,14 @@ internal sealed partial class YouTubeWindow : Window
         _placementButton.Click += (_, _) => ShowPlacementMenu();
         _workspace.SizeChanged += (_, _) => UpdateChatLayout();
         Loaded += (_, _) => Initialization = InitializeAsync();
-        Closed += (_, _) => { _closed = true; _revision++; _chat.Close(); _browser.Dispose(); };
+        Closing += async (_, e) =>
+        {
+            if (_gifWindow is not { IsBusy: true }) return;
+            e.Cancel = true;
+            await StopGifAsync();
+            if (!_closed) Close();
+        };
+        Closed += (_, _) => { _gifWindow?.Cancel(); _closed = true; _revision++; _chat.Close(); _browser.Dispose(); };
     }
     private void ShowPlacementMenu()
     {
