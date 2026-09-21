@@ -42,13 +42,7 @@ internal static class UiDesigns
             ("GifRangeAccent", design.Id == "minimal" ? "#66C9BB" : design.Accent),
             ("GifRangeFill", design.Id == "minimal" ? "#244C48" : design.Selected),
             ("GifRangeInk", design.Id == "minimal" ? "#CEF3EB" : design.Ink),
-            ("GifRangeAccentInk", design.Id == "minimal" ? "#12332D" : design.AccentInk),
-            ("PromoKaiFill", design.Id == "light" ? "#F1EDFF" : "#211D32"),
-            ("PromoKaiLine", design.Id == "light" ? "#D3C8FA" : "#493A73"),
-            ("PromoKaiAccent", design.Id == "light" ? "#553AE7" : "#A994FF"),
-            ("PromoNaverFill", design.Id == "light" ? "#EAF8F0" : "#182B22"),
-            ("PromoNaverLine", design.Id == "light" ? "#BCE4CA" : "#2A5740"),
-            ("PromoNaverAccent", design.Id == "light" ? "#007C38" : "#5CDA91") })
+            ("GifRangeAccentInk", design.Id == "minimal" ? "#12332D" : design.AccentInk) })
             resources[key] = Brush(color);
         resources["ButtonRadius"] = new CornerRadius(design.Radius);
     }

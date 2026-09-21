@@ -1,0 +1,35 @@
+<UserControl x:Class="ShinPlayer.CreatorLinks" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Focusable="False">
+  <UserControl.Resources>
+    <Style x:Key="BrandBadge" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Height" Value="24" /><Setter Property="MinHeight" Value="24" />
+      <Setter Property="Padding" Value="3,2,7,2" /><Setter Property="Background" Value="#101012" />
+      <Setter Property="Foreground" Value="White" /><Setter Property="FontSize" Value="11" />
+      <Setter Property="ToolTipService.InitialShowDelay" Value="350" />
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+        <Border x:Name="Surface" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="#303034" BorderThickness="1">
+          <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+        <ControlTemplate.Triggers>
+          <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" /></Trigger>
+          <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" /></Trigger>
+          <Trigger Property="IsPressed" Value="True"><Setter TargetName="Surface" Property="Background" Value="#29292D" /></Trigger>
+          <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4" /></Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+  </UserControl.Resources>
+  <StackPanel Orientation="Horizontal">
+    <Button x:Name="KaiBadge" Style="{StaticResource BrandBadge}" BorderBrush="#603BFF" Click="Kai_Click" ToolTip="한국AI교육진흥원 · 기업·기관 AI 교육 · ai-campus.kr" AutomationProperties.Name="한국AI교육진흥원 홈페이지 열기">
+      <StackPanel Orientation="Horizontal">
+        <Border Width="27" Height="18" CornerRadius="3" Background="#603BFF"><TextBlock Text="KAI" FontFamily="Arial" FontWeight="Bold" FontSize="10" Foreground="White" HorizontalAlignment="Center" /></Border>
+        <TextBlock Text="교육" Margin="6,0,0,0" /><TextBlock Text="↗" FontSize="10" Margin="7,0,0,0" />
+      </StackPanel>
+    </Button>
+    <Button x:Name="NaverBadge" Style="{StaticResource BrandBadge}" BorderBrush="#03C75A" Click="Naver_Click" Margin="6,0,0,0" ToolTip="네이버 프리미엄콘텐츠 · ChatGPT도 모르는 AI실전활용법" AutomationProperties.Name="ChatGPT도 모르는 AI실전활용법 네이버 프리미엄콘텐츠 채널 열기">
+      <StackPanel Orientation="Horizontal">
+        <Border Width="18" Height="18" CornerRadius="3" Background="#03C75A"><TextBlock Text="N" FontFamily="Arial Black" FontWeight="Black" FontSize="14" Foreground="White" HorizontalAlignment="Center" /></Border>
+        <TextBlock Text="실전 AI" Margin="6,0,0,0" /><TextBlock Text="↗" FontSize="10" Margin="7,0,0,0" />
+      </StackPanel>
+    </Button>
+  </StackPanel>
+</UserControl>

@@ -101,7 +101,7 @@ public partial class MainWindow
     private void UpdateDesignEmptyLayout()
     {
         bool lime = CurrentDesign.Id == "lime";
-        double copyHeight = Stage.ActualHeight - CreatorPromotions.DesiredSize.Height;
+        double copyHeight = Stage.ActualHeight;
         bool compact = copyHeight < 300, tight = copyHeight < 220;
         EmptyArtwork.Visibility = lime && Stage.ActualWidth >= 920 ? Visibility.Visible : Visibility.Collapsed;
         EmptyTitle.FontSize = lime ? tight ? 24 : compact ? 28 : copyHeight < 360 ? 32 : 43 : CurrentDesign.Id == "studio" ? 25 : 30;

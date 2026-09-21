@@ -64,7 +64,11 @@ internal sealed partial class YouTubeWindow : Window
         DockPanel.SetDock(gif, Dock.Right); toolbar.Children.Add(gif);
         DockPanel.SetDock(go, Dock.Right); toolbar.Children.Add(go); toolbar.Children.Add(_address);
         DockPanel.SetDock(toolbar, Dock.Top); root.Children.Add(toolbar);
-        DockPanel.SetDock(_status, Dock.Bottom); root.Children.Add(_status);
+        var footer = new DockPanel { Margin = new(14, 4, 14, 4) };
+        var creatorLinks = new CreatorLinks { VerticalAlignment = VerticalAlignment.Center };
+        DockPanel.SetDock(creatorLinks, Dock.Right); footer.Children.Add(creatorLinks);
+        _status.Margin = new Thickness(0, 4, 12, 4); footer.Children.Add(_status);
+        DockPanel.SetDock(footer, Dock.Bottom); root.Children.Add(footer);
         root.Children.Add(_workspace); Content = root;
         _address.Text = url;
         _status.Text = "유튜브 페이지를 그대로 재생합니다. 자막 검색은 영상 설명의 ‘스크립트 표시’를 연 뒤 이용하세요.";

@@ -3,7 +3,7 @@
   <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="64" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False" /></shell:WindowChrome.WindowChrome>
   <Border BorderBrush="{DynamicResource Line}" BorderThickness="1" Background="{DynamicResource Bg}">
     <Grid x:Name="Root">
-      <Grid.RowDefinitions><RowDefinition x:Name="TitleRow" Height="64" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="27" /></Grid.RowDefinitions>
+      <Grid.RowDefinitions><RowDefinition x:Name="TitleRow" Height="64" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="32" /></Grid.RowDefinitions>
       <Grid x:Name="TitleBar" Margin="22,0,10,0">
         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" Margin="0,0,25,0">
@@ -43,9 +43,8 @@
           <Grid x:Name="Stage" ClipToBounds="True" Margin="1">
             <local:VideoHost x:Name="Video" Visibility="Hidden" Focusable="False" />
             <Grid x:Name="EmptyState">
-              <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-              <Border x:Name="EmptyBackdrop" Grid.RowSpan="2" Background="{DynamicResource StageBrush}" CornerRadius="13" />
-              <Border x:Name="LimeGlow" Grid.RowSpan="2" CornerRadius="13"><Border.Background><RadialGradientBrush GradientOrigin="0.87,0.75" Center="0.85,0.65" RadiusX="0.7" RadiusY="0.9"><GradientStop Color="#202B18" Offset="0" /><GradientStop Color="#10150F" Offset="0.6" /><GradientStop Color="#0E120D" Offset="1" /></RadialGradientBrush></Border.Background></Border>
+              <Border x:Name="EmptyBackdrop" Background="{DynamicResource StageBrush}" CornerRadius="13" />
+              <Border x:Name="LimeGlow" CornerRadius="13"><Border.Background><RadialGradientBrush GradientOrigin="0.87,0.75" Center="0.85,0.65" RadiusX="0.7" RadiusY="0.9"><GradientStop Color="#202B18" Offset="0" /><GradientStop Color="#10150F" Offset="0.6" /><GradientStop Color="#0E120D" Offset="1" /></RadialGradientBrush></Border.Background></Border>
               <Grid x:Name="EmptyArtwork" Width="290" Height="250" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,54,0" IsHitTestVisible="False">
                 <Border Width="232" Height="164" BorderBrush="#39492B" BorderThickness="1" CornerRadius="20" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform Angle="-18" /></Border.RenderTransform></Border>
                 <Border Width="232" Height="164" BorderBrush="#53663A" BorderThickness="1" CornerRadius="20" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform Angle="-7" /></Border.RenderTransform></Border>
@@ -58,23 +57,6 @@
                 <TextBlock x:Name="EmptyDescription" Text="영상 파일을 이곳에 놓아주세요." Foreground="{DynamicResource Muted}" FontSize="13" Margin="1,13,0,23" TextWrapping="Wrap" />
                 <StackPanel x:Name="EmptyActions" Orientation="Horizontal"><Button Content="영상 열기  ↗" Style="{StaticResource Primary}" Click="Open_Click" /><Button x:Name="RecentButton" Content="최근 영상" Foreground="{DynamicResource Muted}" Margin="10,0,0,0" Click="Recent_Click" /></StackPanel>
               </StackPanel>
-              <Grid x:Name="CreatorPromotions" Grid.Row="1" Margin="24,0,24,18" MaxWidth="850">
-                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="10" /><ColumnDefinition /></Grid.ColumnDefinitions>
-                <Button x:Name="KaiPromo" Click="KaiPromo_Click" HorizontalContentAlignment="Stretch" Padding="12,10" BorderThickness="1" BorderBrush="{DynamicResource PromoKaiLine}" Background="{DynamicResource PromoKaiFill}" ToolTip="한국AI교육진흥원 · 기업·기관 AI 교육 · ai-campus.kr" AutomationProperties.Name="한국AI교육진흥원 홈페이지 열기">
-                  <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="40" /><ColumnDefinition Width="*" /><ColumnDefinition Width="18" /></Grid.ColumnDefinitions>
-                    <Border Width="36" Height="36" CornerRadius="7" Background="#553AE7"><TextBlock Text="KAI" FontFamily="Arial" FontWeight="Bold" FontSize="15" Foreground="White" HorizontalAlignment="Center" /></Border>
-                    <StackPanel Grid.Column="1" Margin="9,0,4,0" VerticalAlignment="Center"><TextBlock Text="한국AI교육진흥원" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis" /><TextBlock Text="기업·기관 AI 교육" FontSize="10" Foreground="{DynamicResource Muted}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" /></StackPanel>
-                    <TextBlock Grid.Column="2" Text="↗" Foreground="{DynamicResource PromoKaiAccent}" FontSize="16" />
-                  </Grid>
-                </Button>
-                <Button x:Name="NaverPromo" Grid.Column="2" Click="NaverPromo_Click" HorizontalContentAlignment="Stretch" Padding="12,10" BorderThickness="1" BorderBrush="{DynamicResource PromoNaverLine}" Background="{DynamicResource PromoNaverFill}" ToolTip="네이버 프리미엄콘텐츠 · ChatGPT도 모르는 AI실전활용법" AutomationProperties.Name="네이버 프리미엄콘텐츠 채널 열기">
-                  <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="40" /><ColumnDefinition Width="*" /><ColumnDefinition Width="18" /></Grid.ColumnDefinitions>
-                    <Border Width="36" Height="36" CornerRadius="7" Background="#03C75A"><TextBlock Text="N" FontFamily="Arial Black" FontWeight="Black" FontSize="24" Foreground="White" HorizontalAlignment="Center" /></Border>
-                    <StackPanel Grid.Column="1" Margin="9,0,4,0" VerticalAlignment="Center"><TextBlock Text="네이버 프리미엄콘텐츠" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis" /><TextBlock Text="ChatGPT도 모르는 AI실전활용법" FontSize="10" Foreground="{DynamicResource Muted}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" /></StackPanel>
-                    <TextBlock Grid.Column="2" Text="↗" Foreground="{DynamicResource PromoNaverAccent}" FontSize="16" />
-                  </Grid>
-                </Button>
-              </Grid>
             </Grid>
           </Grid>
         </Border>
@@ -106,7 +88,12 @@
           </Grid>
         </Grid>
       </Border>
-      <Grid Grid.Row="4" Margin="28,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock x:Name="StatusText" Text="준비됨 · Ctrl+O로 영상 열기" FontSize="10" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" /><TextBlock x:Name="EngineText" Grid.Column="1" Text="음높이 유지" FontSize="10" Foreground="{DynamicResource Muted}" Margin="16,0,0,0" /></Grid>
+      <Grid Grid.Row="4" Margin="20,0,16,0">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+        <TextBlock x:Name="StatusText" Text="준비됨 · Ctrl+O로 영상 열기" FontSize="10" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+        <TextBlock x:Name="EngineText" Grid.Column="1" Text="음높이 유지" FontSize="10" Foreground="{DynamicResource Muted}" Margin="16,0,16,0" />
+        <local:CreatorLinks x:Name="CreatorPromotions" Grid.Column="2" VerticalAlignment="Center" />
+      </Grid>
     </Grid>
   </Border>
 </Window>
