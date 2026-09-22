@@ -161,15 +161,9 @@ internal static class ShortsExport
             await CaptureTools.RunAsync(tools.Ffmpeg, args.ToArray(), temp, cancel, 1800);
             cancel.ThrowIfCancellationRequested();
             if (!File.Exists(partial) || new FileInfo(partial).Length < 100) throw new IOException("완성된 쇼츠 파일을 확인할 수 없습니다.");
-            string safe = new(Path.GetFileNameWithoutExtension(video.Path).Where(c => !Path.GetInvalidFileNameChars().Contains(c) && !char.IsControl(c)).Take(65).ToArray());
-            safe = safe.Trim().TrimEnd('.'); if (safe.Length == 0) safe = "영상";
+            string safe = ExportFiles.SafeName(Path.GetFileNameWithoutExtension(video.Path));
             string stem = $"{DateTime.Now:yyyyMMdd_HHmmss}_{safe}_{N(options.Start)}-{N(options.End)}_쇼츠";
-            for (int suffix = 0; ; suffix++)
-            {
-                string target = Path.Combine(folder, stem + (suffix == 0 ? "" : $"_{suffix}") + ".mp4");
-                try { File.Move(partial, target, false); return target; }
-                catch (IOException) when (File.Exists(target)) { }
-            }
+            return ExportFiles.Commit(partial, folder, stem, ".mp4");
         }
         finally
         {

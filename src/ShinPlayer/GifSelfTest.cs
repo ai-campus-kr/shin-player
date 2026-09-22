@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -49,6 +49,25 @@ public partial class MainWindow
             }
             return Task.FromResult<object?>(new { validAndInvalidTimeFormats = true, speedMin = .25, speedMax = 100, maxSourceSeconds = 3600, maxOutputSeconds = 300 });
         });
+        await test("export-output-name-collision-preserves-every-result", async () =>
+        {
+            string folder = Path.Combine(output, "export-collisions"); Directory.CreateDirectory(folder);
+            string original = Path.Combine(folder, "같은 이름.mp4"); await File.WriteAllTextAsync(original, "original");
+            var pending = Enumerable.Range(0, 4).Select(async index =>
+            {
+                string partial = Path.Combine(folder, index + ".partial");
+                await File.WriteAllTextAsync(partial, "export-" + index);
+                return await Task.Run(() => ExportFiles.Commit(partial, folder, "같은 이름", ".mp4"));
+            }).ToArray();
+            var saved = await Task.WhenAll(pending);
+            if (saved.Distinct().Count() != 4 || await File.ReadAllTextAsync(original) != "original" ||
+                Directory.GetFiles(folder, "*.partial").Length != 0) throw new Exception("Concurrent output replaced a file or left a partial");
+            for (int i = 0; i < saved.Length; i++)
+                if (await File.ReadAllTextAsync(saved[i]) != "export-" + i) throw new Exception("Output content changed during commit");
+            if (ExportFiles.SafeName("  한글<>:\"/\\|?*\n. ") != "한글" || ExportFiles.SafeName("...") != "영상" ||
+                ExportFiles.SafeName(new string('가', 100)).Length != 65) throw new Exception("Output name is unsafe or exceeds its limit");
+            return new { concurrentExports = saved.Length, originalPreserved = true, unicodeFileNames = true };
+        });
         await test("gif-local-timing-loop-dimensions-and-playback-preserved", async () =>
         {
             await OpenFilesAsync(new[] { video.Path }); await _player!.SetAsync("pause", true);
@@ -90,7 +109,7 @@ public partial class MainWindow
         {
             var longVideo = await new SubtitleCapture(tools).ProbeAsync(Path.Combine(fixtures, "gif-ten-minutes.mp4"), CancellationToken.None);
             var longSource = new LocalGifSource(longVideo, () => 0);
-            var dialog = new GifWindow(_ => Task.FromResult<GifSource>(longSource)) { Owner = this };
+            var dialog = new GifWindow(_ => Task.FromResult<LocalGifSource>(longSource)) { Owner = this };
             try
             {
                 dialog.Show(); await WaitUntilAsync(() => dialog.IsLoaded, TimeSpan.FromSeconds(5)); await dialog.Initialization;
@@ -111,7 +130,7 @@ public partial class MainWindow
         await test("gif-range-drag-geometry-resize-and-scaling", async () =>
         {
             var longVideo = await new SubtitleCapture(tools).ProbeAsync(Path.Combine(fixtures, "gif-ten-minutes.mp4"), CancellationToken.None);
-            var dialog = new GifWindow(_ => Task.FromResult<GifSource>(new LocalGifSource(longVideo, () => 60))) { Owner = this };
+            var dialog = new GifWindow(_ => Task.FromResult<LocalGifSource>(new LocalGifSource(longVideo, () => 60))) { Owner = this };
             try
             {
                 dialog.Show(); await dialog.Initialization; var range = dialog.Range;
@@ -147,7 +166,7 @@ public partial class MainWindow
         });
         await test("gif-range-zoom-keyboard-typed-input-and-recovery", async () =>
         {
-            var dialog = new GifWindow(_ => Task.FromResult<GifSource>(source)) { Owner = this };
+            var dialog = new GifWindow(_ => Task.FromResult<LocalGifSource>(source)) { Owner = this };
             try
             {
                 dialog.Show(); await dialog.Initialization; dialog.UpdateLayout(); var range = dialog.Range;
@@ -217,16 +236,26 @@ public partial class MainWindow
                 }
                 ApplyUiDesign("minimal"); dialog.Width = 660; dialog.Height = 640;
                 dialog.StartTime.Text = "5"; dialog.EndTime.Text = "1"; await dialog.ExportAsync(pictures);
-                if (dialog.SavedPath != null) throw new Exception("Invalid dialog range exported");
-                dialog.StartTime.Text = "1"; dialog.EndTime.Text = "5"; await dialog.ExportAsync(pictures);
+                if (dialog.SavedPath != null || dialog.Feedback.State != ExportState.Failed || dialog.Feedback.IsProgressVisible) throw new Exception("Invalid dialog range exported or failure is unclear");
+                dialog.StartTime.Text = "1"; dialog.EndTime.Text = "5";
+                var blocker = Path.Combine(output, "gif-blocked-destination"); await File.WriteAllTextAsync(blocker, "occupied");
+                await dialog.ExportAsync(blocker);
+                if (dialog.SavedPath != null || dialog.Feedback.State != ExportState.Failed || dialog.OpenResult.IsEnabled) throw new Exception("GIF export failure appears successful");
+                var saving = dialog.ExportAsync(pictures);
+                if (!dialog.IsBusy || dialog.Feedback.State != ExportState.Working || !dialog.Feedback.IsProgressVisible || dialog.OpenResult.IsEnabled) throw new Exception("GIF save progress is unclear");
+                await saving;
                 if (dialog.SavedPath == null) throw new Exception("Dialog export failed");
+                await VerifyExportCompletionAsync(dialog, dialog.Feedback, dialog.OpenResult, dialog.OpenFolder, "gif", output);
                 OnlineSelfTest.Capture(dialog, Path.Combine(output, "gif-dialog.png"));
                 File.Copy(dialog.SavedPath, Path.Combine(output, "gif-demo.gif"), true);
                 var saved = dialog.SavedPath;
+                dialog.SpeedInput.Text = "2";
+                if (dialog.Feedback.State != ExportState.Edited || dialog.OpenResult.Content.ToString() != "이전 GIF 열기" || !File.Exists(saved)) throw new Exception("Changed GIF settings still appear saved");
                 var pending = dialog.ExportAsync(pictures); await Task.Delay(20); dialog.Close(); await pending;
                 await WaitUntilAsync(() => _gifWindow == null, TimeSpan.FromSeconds(5));
+                if (dialog.Feedback.State != ExportState.Cancelled || dialog.Feedback.IsProgressVisible) throw new Exception("GIF cancellation is not distinguished from completion");
                 if (Directory.GetFiles(pictures, "*.partial", SearchOption.AllDirectories).Length != 0) throw new Exception("Closing GIF dialog left a partial file");
-                return new { buttonWorks = true, themes = 4, output = saved, closeCancelsWork = true };
+                return new { buttonWorks = true, themes = 4, output = saved, closeCancelsWork = true, neonCompletion = true, fixedFooter = true, editedState = true, failureRetry = true };
             }
             finally { dialog.Close(); }
         });

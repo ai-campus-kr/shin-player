@@ -207,15 +207,23 @@ public partial class MainWindow
                 ApplyUiDesign("minimal"); dialog.Width = 1020; dialog.Height = 830;
                 VisualChildren<Button>(dialog).Single(b => Equals(b.Content, "위")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 dialog.WidthInput.SelectedIndex = 1;
-                await dialog.ExportAsync(destination); ShortsCheck(dialog.SavedPath != null, "Dialog export failed");
+                var blocker = Path.Combine(output, "shorts-blocked-destination"); await File.WriteAllTextAsync(blocker, "occupied");
+                await dialog.ExportAsync(blocker);
+                ShortsCheck(dialog.Feedback.State == ExportState.Failed && dialog.SavedPath == null && !dialog.OpenResult.IsEnabled, "Export failure appears successful");
+                var saving = dialog.ExportAsync(destination);
+                ShortsCheck(dialog.IsBusy && dialog.Feedback.State == ExportState.Working && dialog.Feedback.IsProgressVisible && !dialog.OpenResult.IsEnabled, "Shorts progress is unclear");
+                await saving; ShortsCheck(dialog.SavedPath != null, "Dialog export failed");
+                await VerifyExportCompletionAsync(dialog, dialog.Feedback, dialog.OpenResult, dialog.OpenFolder, "shorts", output);
                 OnlineSelfTest.Capture(dialog, Path.Combine(output, "shorts-dialog.png"));
                 File.Copy(dialog.SavedPath!, Path.Combine(output, "ShinPlayer-shorts-demo.mp4"), true);
                 await ShortsFrameAsync(tools, dialog.SavedPath!, "shorts-demo-frame.png", output);
                 dialog.EndTime.Text = "8";
+                ShortsCheck(dialog.Feedback.State == ExportState.Edited && dialog.OpenResult.Content.ToString() == "이전 영상 열기", "Changed shorts settings still appear saved");
                 var pending = dialog.ExportAsync(destination); await Task.Delay(80); dialog.Close(); await pending;
                 await WaitUntilAsync(() => _shortsWindow == null, TimeSpan.FromSeconds(5));
+                ShortsCheck(dialog.Feedback.State == ExportState.Cancelled && !dialog.Feedback.IsProgressVisible, "Cancellation looks like success");
                 ShortsCheck(Directory.GetFiles(destination, "*.partial", SearchOption.AllDirectories).Length == 0, "Closing editor left unfinished output");
-                return new { button = true, preview = true, dragCoordinates = true, themes = 4, typedInputRecovery = true, closeCancels = true };
+                return new { button = true, preview = true, dragCoordinates = true, themes = 4, typedInputRecovery = true, closeCancels = true, neonCompletion = true, fixedFooter = true, editedState = true, failureRetry = true };
             }
             finally { await dialog.StopAsync(); dialog.Close(); }
         });

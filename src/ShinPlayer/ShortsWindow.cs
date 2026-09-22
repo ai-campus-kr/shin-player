@@ -35,12 +35,10 @@ internal sealed class ShortsWindow : Window
     private readonly TextBlock _frameTime = new() { FontFamily = new("Consolas"), FontSize = 12, HorizontalAlignment = HorizontalAlignment.Right };
     private readonly TextBlock _frameStatus = new() { Text = "장면을 불러오는 중…", FontSize = 12, TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Center };
     private readonly TextBlock _compositionHelp = new() { FontSize = 11, TextWrapping = TextWrapping.Wrap };
-    private readonly TextBlock _status = new() { TextWrapping = TextWrapping.Wrap, Margin = new(0, 9, 0, 5), FontSize = 12 };
-    private readonly TextBlock _output = new() { FontSize = 11, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 410 };
-    private readonly ProgressBar _progress = new() { Height = 3, IsIndeterminate = true, Margin = new(0, 12, 0, 0) };
+    internal readonly ExportFeedback Feedback = new("쇼츠");
     private readonly Button _cancel = new() { Content = "닫기", Margin = new(8, 0, 0, 0) };
-    private readonly Button _open = new() { Content = "영상 열기", IsEnabled = false };
-    private readonly Button _folder = new() { Content = "폴더", IsEnabled = false };
+    internal readonly Button OpenResult = new() { Content = "영상 열기", IsEnabled = false };
+    internal readonly Button OpenFolder = new() { Content = "저장 폴더", IsEnabled = false };
     private readonly DispatcherTimer _previewTimer = new() { Interval = TimeSpan.FromMilliseconds(180) };
     private readonly CancellationTokenSource _lifetime = new();
     private CancellationTokenSource? _workCancel, _previewCancel;
@@ -52,6 +50,7 @@ internal sealed class ShortsWindow : Window
     private double _panX = .5, _panY = .5, _textX = .5, _textY = .18, _lastStart, _lastEnd;
     private string _color = "#FFFFFF";
     private long _previewGeneration;
+    private ShortsOptions? _savedOptions;
     internal string? SavedPath { get; private set; }
     internal Task Initialization { get; private set; } = Task.CompletedTask;
     internal bool IsBusy => _busy;
@@ -113,24 +112,23 @@ internal sealed class ShortsWindow : Window
         textHelp.SetResourceReference(TextBlock.ForegroundProperty, "Muted"); _fields.Children.Add(textHelp);
         var outputRow = new DockPanel { Margin = new(0, 0, 0, 8) }; DockPanel.SetDock(WidthInput, Dock.Right); outputRow.Children.Add(WidthInput); outputRow.Children.Add(Label("저장 크기 · 30fps")); _fields.Children.Add(outputRow); _fields.Children.Add(AudioInput);
 
-        var footer = new StackPanel(); footer.Children.Add(_progress); footer.Children.Add(_status);
-        var commands = new DockPanel(); var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-        SaveButton.Style = (Style)FindResource("Primary"); buttons.Children.Add(_folder); buttons.Children.Add(_open); buttons.Children.Add(SaveButton); buttons.Children.Add(_cancel);
-        DockPanel.SetDock(buttons, Dock.Right); commands.Children.Add(buttons); _output.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        _output.Text = "동영상 → 신플레이어 쇼츠"; commands.Children.Add(_output); footer.Children.Add(commands); Grid.SetRow(footer, 2); root.Children.Add(footer); Content = root;
+        var footer = new StackPanel { Margin = new(0, 12, 0, 0) }; footer.Children.Add(Feedback);
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new(0, 10, 0, 0) };
+        SaveButton.Style = (Style)FindResource("Primary"); buttons.Children.Add(OpenFolder); buttons.Children.Add(OpenResult); buttons.Children.Add(SaveButton); buttons.Children.Add(_cancel);
+        footer.Children.Add(buttons); Grid.SetRow(footer, 2); root.Children.Add(footer); Content = root;
 
         AutomationProperties.SetName(Caption, "쇼츠에 올릴 문구"); AutomationProperties.SetName(PreviewTime, "미리보기 위치"); AutomationProperties.SetName(FontSizeInput, "문구 글자 크기");
         AutomationProperties.SetName(FitInput, "쇼츠 화면 맞춤"); AutomationProperties.SetName(WidthInput, "쇼츠 저장 크기");
         Loaded += (_, _) => Initialization = InitializeAsync(); Closing += OnClosing;
         Closed += (_, _) => { _closed = true; _previewTimer.Stop(); _lifetime.Cancel(); _lifetime.Dispose(); _workCancel?.Dispose(); };
         SaveButton.Click += async (_, _) => await ExportAsync(); _cancel.Click += (_, _) => { if (_busy) Cancel(); else Close(); };
-        _open.Click += (_, _) => Open(false); _folder.Click += (_, _) => Open(true);
+        OpenResult.Click += (_, _) => Open(false); OpenFolder.Click += (_, _) => Open(true);
         Range.RangeChanged += () => SyncRange(true);
         StartTime.TextChanged += (_, _) => TypedRange(); EndTime.TextChanged += (_, _) => TypedRange();
         Caption.TextChanged += (_, _) => Refresh(); FontSizeInput.ValueChanged += (_, _) => Refresh(); FitInput.SelectionChanged += (_, _) => Refresh(); WidthInput.SelectionChanged += (_, _) => Refresh();
         TextBoxInput.Checked += (_, _) => Refresh(); TextBoxInput.Unchecked += (_, _) => Refresh();
         AudioInput.Checked += (_, _) => Refresh(); AudioInput.Unchecked += (_, _) => Refresh();
-        Preview.Edited += value => { _panX = value.PanX; _panY = value.PanY; _textX = value.TextX; _textY = value.TextY; };
+        Preview.Edited += value => { _panX = value.PanX; _panY = value.PanY; _textX = value.TextX; _textY = value.TextY; MarkEdited(value); };
         PreviewTime.ValueChanged += (_, _) => { _frameTime.Text = GifOptions.Time(PreviewTime.Value); RequestPreview(); };
         _previewTimer.Tick += (_, _) => { _previewTimer.Stop(); StartPreview(); };
     }
@@ -151,9 +149,9 @@ internal sealed class ShortsWindow : Window
     {
         try
         {
-            _fields.IsEnabled = false; _status.Text = "영상을 확인하는 중…";
+            _fields.IsEnabled = false; Feedback.Show(ExportState.Preparing, "쇼츠 준비 중", "영상을 확인하고 있습니다.");
             _workCancel = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
-            _tools = await CaptureTools.EnsureAsync(new Progress<string>(s => _status.Text = s), _workCancel.Token);
+            _tools = await CaptureTools.EnsureAsync(new Progress<string>(s => { if (!_closed) Feedback.UpdateProgress(s); }), _workCancel.Token);
             _video = await _load(_workCancel.Token);
             if (_video.VideoIndex < 0 || _video.Duration < .2) throw new InvalidOperationException("쇼츠로 만들 수 있는 영상 트랙이 없습니다.");
             _title.Text = Path.GetFileName(_video.Path);
@@ -161,10 +159,10 @@ internal sealed class ShortsWindow : Window
             Range.Initialize(_video.Duration, start, Math.Min(_video.Duration, start + 30));
             _lastStart = Range.Start; _lastEnd = Range.End; SyncRange(true);
             await PreviewAsync();
-            _status.Text = "0.2초~3분 · 선택한 구간과 문구를 세로 MP4로 저장합니다.";
+            Feedback.Show(ExportState.Ready, "쇼츠 저장 준비", "구간과 문구를 정한 뒤 쇼츠 저장을 누르세요.", "동영상 → 신플레이어 쇼츠");
         }
-        catch (OperationCanceledException) { _status.Text = "준비를 취소했습니다."; }
-        catch (Exception ex) { _status.Text = ex.Message; }
+        catch (OperationCanceledException) { Feedback.Show(ExportState.Cancelled, "준비 취소", "영상 준비를 취소했습니다."); }
+        catch (Exception ex) { Feedback.Show(ExportState.Failed, "영상을 준비하지 못했습니다", ex.Message); }
         finally { _initializing = false; Finish(); }
     }
     internal ShortsOptions ReadOptions() => new(GifOptions.Parse(StartTime.Text), GifOptions.Parse(EndTime.Text), WidthInput.SelectedIndex == 0 ? 1080 : 720,
@@ -174,14 +172,27 @@ internal sealed class ShortsWindow : Window
     {
         try
         {
-            var options = ReadOptions(); options.Validate(_video?.Duration ?? Math.Max(.2, options.End)); Preview.Apply(options);
+            var options = ReadOptions(); options.Validate(_video?.Duration ?? Math.Max(.2, options.End)); Preview.Apply(options); MarkEdited(options);
             _compositionHelp.Text = options.Fit == ShortsFit.Fill ? "영상을 드래그해 구도를 잡으세요" : "원본 전체를 검은 여백과 함께 보여줍니다";
             if (_previewCancel == null && Preview.HasFrame) _frameStatus.Text = PreviewHelp;
             _estimate.Text = $"선택 {GifOptions.DurationText(options.Length)} / 최대 3분";
             SaveButton.IsEnabled = !_busy && _video != null && _tools != null;
         }
         catch (Exception ex) when (ex is FormatException or InvalidOperationException)
-        { _estimate.Text = ex.Message; SaveButton.IsEnabled = false; }
+        { _estimate.Text = ex.Message; SaveButton.IsEnabled = false; MarkEdited(null); }
+    }
+    private void MarkEdited(ShortsOptions? options)
+    {
+        if (!_busy && SavedPath != null && options != _savedOptions) Feedback.MarkEdited();
+        UpdateResultActions();
+    }
+    private void UpdateResultActions()
+    {
+        bool saved = SavedPath != null && !_busy;
+        OpenResult.IsEnabled = OpenFolder.IsEnabled = saved;
+        OpenResult.Content = saved ? Feedback.State == ExportState.Succeeded ? "완성된 영상 열기" : "이전 영상 열기" : "영상 열기";
+        SaveButton.Content = _busy && !_initializing ? "저장 중…" : SavedPath != null ? "다시 저장" : "쇼츠 저장";
+        Feedback.StyleOpenButton(OpenResult);
     }
     private void TypedRange()
     {
@@ -251,28 +262,29 @@ internal sealed class ShortsWindow : Window
         {
             var options = ReadOptions(); options.Validate(_video.Duration); ShortsComposition.RenderLabel(options);
             _workCancel?.Dispose(); _workCancel = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
-            _busy = true; _fields.IsEnabled = Preview.IsEnabled = PreviewTime.IsEnabled = SaveButton.IsEnabled = _open.IsEnabled = _folder.IsEnabled = false;
-            _progress.IsIndeterminate = true; _cancel.Content = "취소"; SavedPath = null;
+            _busy = true; _fields.IsEnabled = Preview.IsEnabled = PreviewTime.IsEnabled = SaveButton.IsEnabled = OpenResult.IsEnabled = OpenFolder.IsEnabled = false;
+            _cancel.Content = "취소"; SavedPath = null; _savedOptions = null;
+            Feedback.Show(ExportState.Working, "쇼츠 저장 중…", "이 창을 닫지 않아도 다른 작업을 할 수 있습니다. 완료되면 형광색으로 알려드립니다."); UpdateResultActions();
             _previewTimer.Stop(); _previewCancel?.Cancel(); await Task.WhenAll(_previewJobs);
             SavedPath = await ShortsExport.ExportAsync(_tools, _video, options, videosRoot ?? ShortsExport.VideosDirectory,
-                new Progress<string>(s => { if (_busy && !_closed) _status.Text = s; }), _workCancel.Token);
+                new Progress<string>(s => { if (_busy && !_closed) Feedback.UpdateProgress(s); }), _workCancel.Token);
             long bytes = new FileInfo(SavedPath).Length;
             string size = bytes < 1048576 ? $"{Math.Max(1, bytes / 1024d):0.#} KB" : $"{bytes / 1048576d:0.#} MB";
-            _status.Text = $"저장 완료 · {options.Width} × {options.Height} · {GifOptions.DurationText(options.Length)} · {size}";
-            _output.Text = Path.GetFileName(SavedPath); _output.ToolTip = SavedPath;
+            _savedOptions = options;
+            Feedback.Complete($"{options.Width} × {options.Height} · {GifOptions.DurationText(options.Length)} · {size} · 영상 열기로 확인하세요.", Path.GetFileName(SavedPath), SavedPath);
         }
-        catch (OperationCanceledException) { _status.Text = "취소했습니다. 미완성 영상은 저장하지 않았습니다."; }
-        catch (Exception ex) { _status.Text = ex.Message; }
+        catch (OperationCanceledException) { Feedback.Show(ExportState.Cancelled, "쇼츠 저장 취소", "미완성 영상은 저장하지 않았습니다. 구간을 확인하고 다시 저장하세요."); }
+        catch (Exception ex) { Feedback.Show(ExportState.Failed, "쇼츠 저장 실패", ex.Message); }
         finally { Finish(); }
     }
     private void Finish()
     {
-        _busy = false; _fields.IsEnabled = Preview.IsEnabled = PreviewTime.IsEnabled = true; _progress.IsIndeterminate = false;
-        _cancel.Content = "닫기"; _cancel.IsEnabled = true; _open.IsEnabled = _folder.IsEnabled = SavedPath != null; Refresh();
+        _busy = false; _fields.IsEnabled = Preview.IsEnabled = PreviewTime.IsEnabled = true;
+        _cancel.Content = "닫기"; _cancel.IsEnabled = true; Refresh();
         if (_closeRequested) _ = CloseAfterWorkAsync();
     }
     private string PreviewHelp => FitInput.SelectedIndex == 0 ? "영상·문구 드래그로 위치 조절" : "문구를 드래그해 위치 조절";
-    internal void Cancel() { if (_closed) return; _workCancel?.Cancel(); _previewCancel?.Cancel(); if (_busy) { _status.Text = "취소하는 중…"; _cancel.IsEnabled = false; } }
+    internal void Cancel() { if (_closed) return; _workCancel?.Cancel(); _previewCancel?.Cancel(); if (_busy) { Feedback.Show(ExportState.Cancelling, "취소 중…", "미완성 파일을 정리하고 있습니다."); _cancel.IsEnabled = false; } }
     internal async Task StopAsync()
     {
         if (_closed) return;
@@ -296,6 +308,6 @@ internal sealed class ShortsWindow : Window
     private void Open(bool folder)
     {
         try { if (SavedPath != null) Process.Start(new ProcessStartInfo(folder ? Path.GetDirectoryName(SavedPath)! : SavedPath) { UseShellExecute = true }); }
-        catch (Exception ex) { _status.Text = "파일을 열지 못했습니다: " + ex.Message; }
+        catch (Exception ex) { Feedback.Show(ExportState.Failed, "파일을 열지 못했습니다", "저장된 파일은 유지됩니다. " + ex.Message, Path.GetFileName(SavedPath), SavedPath); UpdateResultActions(); }
     }
 }

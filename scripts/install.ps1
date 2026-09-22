@@ -27,6 +27,11 @@ if (Test-Path -LiteralPath $exePath) {
 }
 New-Item -ItemType Directory -Force -Path $installPath | Out-Null
 Get-ChildItem -LiteralPath $publishPath | Copy-Item -Destination $installPath -Recurse -Force
+# Remove only obsolete developer files from older installs; keep runtime and user data intact.
+foreach ($name in @('ShinPlayer.pdb', 'Microsoft.Web.WebView2.Core.xml', 'Microsoft.Web.WebView2.Wpf.xml', 'Microsoft.Web.WebView2.WinForms.xml')) {
+    $obsolete = Join-Path $installPath $name
+    if (-not (Test-Path -LiteralPath (Join-Path $publishPath $name)) -and (Test-Path -LiteralPath $obsolete)) { Remove-Item -LiteralPath $obsolete -Force }
+}
 Copy-Item -LiteralPath $enginePath -Destination (Join-Path $installPath 'libmpv-2.dll') -Force
 $registered = Start-Process -FilePath $exePath -ArgumentList '--register' -PassThru -WindowStyle Hidden
 $registered.WaitForExit()

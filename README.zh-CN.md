@@ -8,14 +8,14 @@
 
 一款 Windows 视频播放器，支持精细调速、音量增强，以及根据内嵌字幕批量截图。
 
-**0.6 测试版新功能：** 常驻地址栏 · YouTube 旁的 AI 聊天面板 · 按请求跳到对应片段。
+**v1.0 正式发布：** 常驻地址栏 · YouTube 旁的 AI 聊天面板 · 按请求跳到对应片段。
 
 **Windows 10/11 x64 · 免费 · 应用源码采用 MIT 许可证**
 
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.7/docs/screenshots/v0.6.0-beta.7/01-home-badges.png" width="1000" alt="右下角固定显示鲜紫色KAI和绿色NAVER小徽标的新播放器">
+  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v1.0.0/docs/screenshots/v1.0.0/04-home.png" width="1000" alt="右下角固定显示鲜紫色KAI和绿色NAVER小徽标的新播放器">
 </p>
 
 | **0.25–8 倍速** | **最高 +12 dB** | **字幕 → PNG** | **4 种界面** |
@@ -28,22 +28,26 @@
 
 打开本地视频，点击 **쇼츠**（短视频），在播放器内完成选区、竖屏构图、添加文字和保存。
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.11/docs/screenshots/v0.6.0-beta.11/01-shorts-editor.png" width="980" alt="实际短视频编辑界面：竖屏画面预览、拖动选区、韩文文字叠加和构图设置"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v1.0.0/docs/screenshots/v1.0.0/01-shorts-completed.png" width="980" alt="实际短视频编辑界面：竖屏画面预览、拖动选区、韩文文字叠加和构图设置"></p>
 
 1. 拖动时间轴两端设置开始和结束位置，拖动中间可移动整个片段。使用 **장면 미리보기**（画面预览）滑块查看选区内的画面。
 2. **세로로 꽉 채우기**（填满竖屏）模式支持拖动画面调整构图；**원본 전체 보이기**（显示完整原画面）模式添加黑边，保留整个画面。
 3. 在 **올릴 문구**（叠加文字）中输入最多 **160字、4行**。可调整字号，选择白色、黄色或薄荷色及深色背景，并在预览中拖动文字定位。
 4. 点击 **쇼츠 저장**（保存短视频），导出 **9:16、1080×1920 / 720×1280、30fps 的 H.264 MP4**。取消 **원본 소리 포함** 可导出无声视频。
 
+**保存完成后，底部会持续显示荧光青柠色的“✓ 쇼츠 저장 완료”（短视频保存完成）。** 可查看文件名、时长和大小，并点击 **완성된 영상 열기**（打开成品视频）或 **저장 폴더**（保存文件夹）。更改选区、文字或构图后，状态变为 **설정 변경 · 다시 저장 필요**（设置已更改，需要重新保存），明确区分之前的文件。
+
 - 片段长度 **0.2秒至3分钟**。保存至 Windows **视频 → 신플레이어 쇼츠**，不会覆盖原视频或已有的导出文件。
 - **仅支持本地视频**。无需字幕或 API 密钥，不消耗 GPT Token，原视频的播放位置和速度保持不变。
 - 支持四种界面。取消任务或关闭编辑窗口时会停止转换并清理未完成文件。
 
-**[查看此编辑器实际导出的 MP4](https://github.com/ai-campus-kr/shin-player/releases/download/v0.6.0-beta.11/ShinPlayer-shorts-demo.mp4)** · 截图和成品使用原创合成演示视频。
+**[查看此编辑器实际导出的 MP4](https://github.com/ai-campus-kr/shin-player/releases/download/v1.0.0/ShinPlayer-shorts-demo.mp4)** · 截图和成品使用原创合成演示视频。
 
 ## 把精彩片段变成 GIF
 
 在本地播放器中打开视频文件，点击 **GIF**，**拖动时间轴两端的手柄**选择片段，再点击 **GIF 만들기**（制作 GIF）。拖动中间的选中区域，可在保持时长的同时移动整个片段。
+
+**荧光青柠色的“✓ GIF 저장 완료”（GIF 保存完成）** 和 **완성된 GIF 열기**（打开成品 GIF）按钮让完成状态一目了然。完成区域固定在滚动区域之外，不会自动消失。保存中、取消、失败和设置更改均有独立状态。
 
 - 使用 **선택 확대**（放大选区）和 **전체 보기**（查看全片）精细调整短片段。选中手柄后，方向键每次调整0.1秒，配合Shift为1秒，配合Ctrl为10秒。
 - 仍可直接输入开始、结束时间，或使用 **현재 위치**（当前位置），这些操作与时间轴双向同步。
@@ -56,13 +60,13 @@
 
 **GIF 制作仅支持本地视频文件，不提供 YouTube GIF 截取功能。**
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="实际 GIF 界面：拖动手柄选择区间、移动选区、放大与时间输入同步"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v1.0.0/docs/screenshots/v1.0.0/02-gif-completed.png" width="620" alt="实际 GIF 界面：拖动手柄选择区间、移动选区、放大与时间输入同步"></p>
 
 *使用合成测试视频拍摄的实际应用界面。*
 
 ## 快速开始
 
-1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
+1. 从[最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v1.0.0)下载 `ShinPlayer-版本-win-x64.zip`，并完整解压。
 2. 运行 **`Install.cmd`**。无需管理员权限，也无需单独安装 .NET。
 3. 在开始菜单打开 **신플레이어**，将视频拖入窗口，或点击 **영상 열기**（打开视频）。
 
@@ -213,9 +217,9 @@
 
 </details>
 
-## YouTube 与视频 AI 聊天 — 0.6 测试版
+## YouTube 与视频 AI 聊天
 
-**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载测试版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)
+**“解释这段内容” → 根据字幕回答。“跳到那里” → 移动播放位置。** [下载 v1.0](https://github.com/ai-campus-kr/shin-player/releases/tag/v1.0.0)
 
 1. 在顶部常驻的 **地址栏** 输入 YouTube 地址，然后按 **Enter** 或 **→**。按 **Alt+D / Ctrl+U** 可选中地址。可以省略 `https://`，例如直接输入 `youtube.com`。应用内的 **Edge WebView2** 会打开正常的 YouTube 页面。
 2. **打开视频后自动加载字幕。** 没有字幕时显示 **“자막이 없는 영상입니다”**（该视频没有字幕）。宽窗口的聊天面板在右侧，窄窗口在下方，也可通过 **채팅 배치** 选择位置。 同时支持旧版字幕面板及新版 **视频信息 → 字幕** 页面。
@@ -236,7 +240,7 @@
 
 缺少 WebView2 Runtime 时会提供 Microsoft 官方安装说明。YouTube 的登录、地区及视频限制仍然适用。**외부 열기**可打开默认浏览器，但 AI 跳转不连接该外部窗口。网页视频使用 YouTube 自身控件，本地 mpv 的倍速、音量增强和批量截图设置不适用。不使用视频流提取或下载工具。
 
-**测试版验证范围：** 86 项集成检查涵盖密钥保存与连接状态、字幕自动加载、无字幕与视频切换、聊天布局及本地 GIF。另行验证了真实 YouTube 字幕自动加载、GPT-5.4-mini 回答及时间跳转。字幕可用性和网站变化可能影响其他视频。
+**验证范围：** 95 项集成检查涵盖密钥保存与连接状态、字幕自动加载、无字幕与视频切换、聊天布局及本地 GIF。真实 YouTube 字幕自动加载、GPT-5.4-mini 回答及时间跳转已在此前的测试版开发中另行验证。v1.0 回归检查使用模拟 API 响应和隔离的 WebView2 页面。字幕可用性和网站变化可能影响其他视频。
 
 音量增强和本地字幕截图仍然 **在 PC 上处理，无需 API 密钥或 Token 费用**。
 
@@ -244,7 +248,7 @@
 
 使用 C# / .NET 8 WPF 和 mpv 构建的 Windows 原生应用，本地播放使用 mpv，可选 YouTube 功能使用 Edge WebView2，无需开发服务器。
 
-0.6 测试版使用 WPF/libmpv 和隔离 WebView2 的 **86 项集成检查**验证。API 使用模拟响应，真实服务验证范围见上文。[更新日志](CHANGELOG.md)
+v1.0 使用 WPF/libmpv 和隔离 WebView2 的 **95 项集成检查**验证。API 使用模拟响应，真实服务验证范围见上文。[更新日志](CHANGELOG.md)
 
 <details>
 <summary><strong>从源码构建与安装</strong></summary>
@@ -290,7 +294,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 截图检查使用独立的合成 MP4/MKV，验证内嵌轨道选择、字幕中间时刻的实际帧颜色、PNG 中的韩语文字、不含字幕选项、重复保存、取消后的部分结果保留、工作进程终止、播放位置保持以及截图窗口。检查图片仅保存到 `artifacts` 下。
 
-共运行 86 项集成检查。定位检查覆盖两种窗口大小和播放列表状态下的 28 个位置，以及布局刷新前的重复输入、释放位置、鼠标捕获丢失、文件切换和全屏。也检查 1–2 倍 WPF 布局变换，但未自动化物理鼠标输入或实际显示器 DPI 变更。界面检查渲染四种风格的启动画面、最小窗口、播放列表和截图窗口，检查按钮重叠及字幕选择显示。还检查设置序列化、旧设置兼容性、选择按钮，以及播放时切换风格对位置和速度的保持。
+共运行 95 项集成检查。定位检查覆盖两种窗口大小和播放列表状态下的 28 个位置，以及布局刷新前的重复输入、释放位置、鼠标捕获丢失、文件切换和全屏。也检查 1–2 倍 WPF 布局变换，但未自动化物理鼠标输入或实际显示器 DPI 变更。界面检查渲染四种风格的启动画面、最小窗口、播放列表和截图窗口，检查按钮重叠及字幕选择显示。还检查设置序列化、旧设置兼容性、选择按钮，以及播放时切换风格对位置和速度的保持。
 
 音量增强检查在静音状态下播放合成 PCM 音频，并测量 mpv 滤镜输出的峰值／RMS。验证各档实际增益、最高档限幅、关闭后恢复原始幅度、初始设置恢复、快速连续调整以及其他滤镜的保留。
 
@@ -320,4 +324,4 @@ Shin Player 自身源码采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 한
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [最新发行版](https://github.com/ai-campus-kr/shin-player/releases/tag/v1.0.0) · [报告问题或提出功能建议](https://github.com/ai-campus-kr/shin-player/issues)

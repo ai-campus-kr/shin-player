@@ -150,7 +150,6 @@ public partial class MainWindow : Window
         var w = _player.Number("video-params/w");
         var h = _player.Number("video-params/h");
         var decoder = _player.Text("hwdec-current", "no");
-        var codec = _player.Text("video-codec");
         EngineText.Text = _loaded ? $"{(w > 0 ? $"{w:0}×{h:0}  ·  " : "오디오  ·  ")}{(decoder is "no" or "" ? "CPU" : decoder.ToUpperInvariant())}  ·  {(Settings.PitchCorrection ? "음높이 유지" : "음높이 변경")}" : "음높이 유지  ·  GPU 자동";
         _updating = false;
         if (_loaded && _player.Flag("eof-reached") && !_eofHandled)

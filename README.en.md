@@ -8,14 +8,14 @@
 
 A Windows video player with fine speed control, audio boost, and batch frame capture from embedded subtitles.
 
-**New in 0.6 beta:** Persistent address bar · docked YouTube AI chat · seek when requested.
+**v1.0 stable:** Persistent address bar · docked YouTube AI chat · seek when requested.
 
 **Windows 10/11 x64 · Free · App source under the MIT license**
 
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.7/docs/screenshots/v0.6.0-beta.7/01-home-badges.png" width="1000" alt="ShinPlayer with compact purple KAI and green Naver badges fixed at the bottom right">
+  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v1.0.0/docs/screenshots/v1.0.0/04-home.png" width="1000" alt="ShinPlayer with compact purple KAI and green Naver badges fixed at the bottom right">
 </p>
 
 | **0.25–8×** | **Up to +12 dB** | **Subtitles → PNG** | **4 UI styles** |
@@ -28,22 +28,26 @@ A Windows video player with fine speed control, audio boost, and batch frame cap
 
 Open a local video and click **쇼츠** (Shorts). Choose a range, frame the vertical shot, add your own text, and save—all inside the player.
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.11/docs/screenshots/v0.6.0-beta.11/01-shorts-editor.png" width="980" alt="Actual Shorts editor with a portrait frame preview, draggable range, Korean text overlay, and framing controls"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v1.0.0/docs/screenshots/v1.0.0/01-shorts-completed.png" width="980" alt="Actual Shorts editor with a portrait frame preview, draggable range, Korean text overlay, and framing controls"></p>
 
 1. Drag either timeline handle to set the start and end. Drag the middle to move the whole range. Use **장면 미리보기** (Frame preview) to inspect frames within it.
 2. Choose **세로로 꽉 채우기** (Fill portrait) and drag the image to frame your subject, or **원본 전체 보이기** (Show entire frame) to keep the whole picture with black padding.
 3. Enter **올릴 문구** (Overlay text): up to **160 characters and 4 lines**. Adjust size, white/yellow/mint text, and the dark background. Drag the text on the preview to position it.
 4. Click **쇼츠 저장** (Save short). Export **9:16 H.264 MP4**, **1080×1920 or 720×1280**, at **30fps**. Uncheck **원본 소리 포함** to export without audio.
 
+**A persistent neon-lime ✓ 쇼츠 저장 완료 (Short saved) panel confirms completion.** Check the filename, duration and size, then choose **완성된 영상 열기** (Open finished video) or **저장 폴더** (Save folder). Editing the range, text or framing changes the status to **설정 변경 · 다시 저장 필요** (Settings changed—save again), so the previous file is clearly identified.
+
 - Select **0.2 seconds–3 minutes**. Files go to Windows **Videos → 신플레이어 쇼츠**. Source files and existing exports are never overwritten.
 - **Local videos only.** No subtitles, API key, or GPT tokens are needed. The original player's position and speed stay unchanged.
 - All four UI styles are supported. Cancelling or closing the editor stops the encoder and removes unfinished files.
 
-**[Watch the MP4 actually exported from this editor](https://github.com/ai-campus-kr/shin-player/releases/download/v0.6.0-beta.11/ShinPlayer-shorts-demo.mp4)** · The screenshot and output use an original synthetic demonstration video.
+**[Watch the MP4 actually exported from this editor](https://github.com/ai-campus-kr/shin-player/releases/download/v1.0.0/ShinPlayer-shorts-demo.mp4)** · The screenshot and output use an original synthetic demonstration video.
 
 ## Turn a moment into a GIF
 
 Open a local video file and click **GIF** in the player. **Drag the two timeline handles** to select a segment, then choose **GIF 만들기** (create GIF). Drag the selected area to move the entire segment while preserving its length.
+
+The **neon-lime ✓ GIF 저장 완료 (GIF saved)** panel and **완성된 GIF 열기** (Open finished GIF) button make completion clear. The result stays fixed outside the scrolling area and does not disappear automatically. Saving, cancellation, failure and changed settings have distinct states.
 
 - **선택 확대** (zoom to selection) and **전체 보기** (full timeline) make short segments easier to adjust. Focus a handle and use arrow keys for 0.1-second adjustments, Shift for 1 second, or Ctrl for 10 seconds.
 - Typed start/end times and **현재 위치** (current position) remain available and stay synchronized with the timeline.
@@ -56,13 +60,13 @@ Open a local video file and click **GIF** in the player. **Drag the two timeline
 
 **GIF creation supports local video files only. YouTube GIF capture is not available.**
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="Actual GIF dialog: draggable range handles, segment movement, zoom and synchronized time fields"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v1.0.0/docs/screenshots/v1.0.0/02-gif-completed.png" width="620" alt="Actual GIF dialog: draggable range handles, segment movement, zoom and synchronized time fields"></p>
 
 *Actual app screenshot using a synthetic test video.*
 
 ## Quick start
 
-1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)** and extract the entire archive.
+1. Download `ShinPlayer-<version>-win-x64.zip` from the **[latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v1.0.0)** and extract the entire archive.
 2. Run **`Install.cmd`**. No administrator privileges or separate .NET installation are required.
 3. Open **신플레이어** from the Start menu, then drop a video onto it or click **영상 열기** (Open video).
 
@@ -213,9 +217,9 @@ Playback is not guaranteed for DRM-protected videos, damaged files, or specializ
 
 </details>
 
-## YouTube and video chat — 0.6 beta
+## YouTube and video chat
 
-**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download the beta](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)
+**“Explain this” → an answer based on the transcript. “Go to that part” → seek to the supporting moment.** [Download v1.0](https://github.com/ai-campus-kr/shin-player/releases/tag/v1.0.0)
 
 1. Enter a YouTube address in the always-visible top **address bar**, then press **Enter** or **→**. **Alt+D / Ctrl+U** selects the address. You can omit `https://`, for example `youtube.com`. The app opens the normal YouTube page in **Edge WebView2**.
 2. **Subtitles load automatically when you open a video.** If none are available, the panel shows **“자막이 없는 영상입니다”** (This video has no subtitles). Chat sits on the right in wide windows and below in narrow windows; **채팅 배치** selects its position. Both legacy transcript panels and the newer **Video info → Transcript** view are supported.
@@ -236,7 +240,7 @@ For local videos, **AI / Ctrl+J** automatically reads embedded text subtitles, p
 
 Missing WebView2 Runtime opens Microsoft's installation guidance. YouTube login, region and video restrictions still apply. **외부 열기** opens the default browser, without AI seek integration. Web videos use YouTube's controls; local mpv speed, audio boost and batch capture settings do not apply. No stream extraction or downloader is used.
 
-**Beta verification:** 86 integration checks cover saved/verified key states, automatic/missing/stale subtitles, chat layouts and local GIF export. Real YouTube subtitle loading, GPT-5.4-mini answers and seeking were also tested separately. Transcript availability and site changes can affect other videos.
+**Verification:** 95 integration checks cover saved/verified key states, automatic/missing/stale subtitles, chat layouts and local GIF export. Real YouTube subtitle loading, GPT-5.4-mini answers and seeking were tested separately during beta development. The v1.0 regression suite uses mock API responses and isolated WebView2 pages. Transcript availability and site changes can affect other videos.
 
 Audio boost and local subtitle capture still work **on your PC without API keys or token costs**.
 
@@ -244,7 +248,7 @@ Audio boost and local subtitle capture still work **on your PC without API keys 
 
 A native Windows app built with C# / .NET 8 WPF and mpv. Local playback uses mpv; the optional YouTube window uses Edge WebView2. No development server is needed.
 
-The 0.6 beta has **86 integration checks** using WPF/libmpv and isolated WebView2. API tests use mock responses; live-service validation limits are described above. See the [changelog](CHANGELOG.md).
+v1.0 has **95 integration checks** using WPF/libmpv and isolated WebView2. API tests use mock responses; live-service validation limits are described above. See the [changelog](CHANGELOG.md).
 
 <details>
 <summary><strong>Build and install from source</strong></summary>
@@ -290,7 +294,7 @@ Timing measurements use synthetic 640×360 media on the development PC. `loadMs`
 
 Capture checks use separate synthetic MP4/MKV files. They verify embedded track selection, actual frame colors at subtitle midpoints, Korean text in PNGs, the no-subtitle option, duplicate output, partial results after cancellation, worker-process termination, playback-position preservation, and the capture dialog. Test images are saved only under `artifacts`.
 
-There are 86 integration checks. Seeking covers 28 points across two window sizes and playlist states, repeated input before layout refresh, release position, capture loss, file changes, and full screen. WPF layout transforms from 1× to 2× are tested; physical mouse input and real monitor-DPI changes are not automated. UI checks render all four styles at startup and minimum size, plus playlists and capture dialogs, checking for overlapping buttons and subtitle-selection visibility. Settings serialization, backward compatibility, selection buttons, and position/speed preservation during live style changes are also covered.
+There are 95 integration checks. Seeking covers 28 points across two window sizes and playlist states, repeated input before layout refresh, release position, capture loss, file changes, and full screen. WPF layout transforms from 1× to 2× are tested; physical mouse input and real monitor-DPI changes are not automated. UI checks render all four styles at startup and minimum size, plus playlists and capture dialogs, checking for overlapping buttons and subtitle-selection visibility. Settings serialization, backward compatibility, selection buttons, and position/speed preservation during live style changes are also covered.
 
 Audio-boost checks play synthetic PCM audio while muted and measure peak/RMS levels at the mpv filter output. They verify the actual gain of every preset, the limiter at maximum boost, restoration when disabled, initial state restoration, rapid adjustment, and preservation of other filters.
 
@@ -320,4 +324,4 @@ Shin Player’s own source is released under the [MIT license](LICENSE). Copyrig
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [Latest release](https://github.com/ai-campus-kr/shin-player/releases/tag/v1.0.0) · [Report bugs or suggest features](https://github.com/ai-campus-kr/shin-player/issues)

@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -56,18 +55,12 @@ internal sealed record GifOptions(double Start, double End, int Width, int Fps, 
     }
 }
 
-internal abstract class GifSource(string title, double duration)
+internal sealed class LocalGifSource(SubtitleVideo video, Func<double> position)
 {
-    internal string Title { get; } = title;
-    internal double Duration { get; } = duration;
-    internal abstract Task<double> PositionAsync();
-    internal abstract Task<string> ExportAsync(CaptureTools tools, GifOptions options, string pictures, IProgress<string> progress, CancellationToken cancel);
-}
-
-internal sealed class LocalGifSource(SubtitleVideo video, Func<double> position) : GifSource(Path.GetFileNameWithoutExtension(video.Path), video.Duration)
-{
-    internal override Task<double> PositionAsync() => Task.FromResult(position());
-    internal override Task<string> ExportAsync(CaptureTools tools, GifOptions options, string pictures, IProgress<string> progress, CancellationToken cancel)
+    internal string Title => Path.GetFileNameWithoutExtension(video.Path);
+    internal double Duration => video.Duration;
+    internal Task<double> PositionAsync() => Task.FromResult(position());
+    internal Task<string> ExportAsync(CaptureTools tools, GifOptions options, string pictures, IProgress<string> progress, CancellationToken cancel)
     {
         options.Validate(Duration);
         if (video.VideoIndex < 0) throw new InvalidOperationException("GIF로 만들 영상 트랙이 없습니다.");
@@ -107,16 +100,8 @@ internal static class GifExport
             await CaptureTools.RunAsync(tools.Ffmpeg, [.. common, .. input, "-i", palette, "-t", Number(options.OutputLength), "-filter_complex", $"[{stream}]{scale}[v];[v][1:v]paletteuse=dither=sierra2_4a", "-an", "-sn", "-loop", "0", "-f", "gif", "-y", partial], temp, cancel, options.WorkerTimeoutSeconds);
             cancel.ThrowIfCancellationRequested();
             if (new FileInfo(partial).Length < 30) throw new InvalidOperationException("GIF에 저장할 화면이 없습니다.");
-            var invalid = Path.GetInvalidFileNameChars();
-            string safe = new(title.Where(c => !invalid.Contains(c) && !char.IsControl(c)).Take(65).ToArray());
-            safe = safe.Trim().TrimEnd('.'); if (safe.Length == 0) safe = "영상";
-            string prefix = $"{DateTime.Now:yyyyMMdd_HHmmss}_{safe}_{Number(options.Start)}-{Number(options.End)}_{Number(options.Speed)}x";
-            for (int suffix = 0; ; suffix++)
-            {
-                string output = Path.Combine(folder, prefix + (suffix == 0 ? "" : $"_{suffix}") + ".gif");
-                try { File.Move(partial, output, false); return output; }
-                catch (IOException) when (File.Exists(output)) { }
-            }
+            string prefix = $"{DateTime.Now:yyyyMMdd_HHmmss}_{ExportFiles.SafeName(title)}_{Number(options.Start)}-{Number(options.End)}_{Number(options.Speed)}x";
+            return ExportFiles.Commit(partial, folder, prefix, ".gif");
         }
         finally
         {

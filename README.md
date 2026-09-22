@@ -8,14 +8,14 @@
 
 세밀한 배속, 음량 증폭, 자막별 일괄 캡처를 갖춘 Windows 영상 플레이어.
 
-**0.6 베타:** 브라우저형 주소창 · 유튜브 옆 AI 채팅 · 요청하면 해당 구간으로 이동.
+**v1.0 정식 출시:** 브라우저형 주소창 · 유튜브 옆 AI 채팅 · 요청하면 해당 구간으로 이동.
 
 **Windows 10/11 x64 · 무료 · 앱 소스 MIT 공개**
 
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.7/docs/screenshots/v0.6.0-beta.7/01-home-badges.png" width="1000" alt="하단 오른쪽에 선명한 보라색 KAI·초록색 네이버 배지를 고정한 신플레이어">
+  <img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v1.0.0/docs/screenshots/v1.0.0/04-home.png" width="1000" alt="하단 오른쪽에 선명한 보라색 KAI·초록색 네이버 배지를 고정한 신플레이어">
 </p>
 
 | **0.25–8×** | **최대 +12 dB** | **자막 → PNG** | **4가지 UI** |
@@ -28,22 +28,26 @@
 
 로컬 영상을 열고 상단 **쇼츠**를 누르세요. **구간 선택 → 세로 구도 → 문구 추가 → 쇼츠 저장**까지 플레이어 안에서 끝납니다.
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.11/docs/screenshots/v0.6.0-beta.11/01-shorts-editor.png" width="980" alt="실제 쇼츠 편집창: 세로 장면 미리보기, 드래그 구간 선택, 한글 문구와 화면 맞춤"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v1.0.0/docs/screenshots/v1.0.0/01-shorts-completed.png" width="980" alt="실제 쇼츠 편집창: 세로 장면 미리보기, 드래그 구간 선택, 한글 문구와 화면 맞춤"></p>
 
 1. 타임라인 양 끝을 드래그해 시작·끝을 정합니다. 가운데를 끌면 구간 전체가 이동합니다. 왼쪽 **장면 미리보기** 슬라이더로 선택한 구간의 화면을 확인하세요.
 2. **세로로 꽉 채우기**에서는 영상을 드래그해 구도를 조정합니다. **원본 전체 보이기**는 화면을 자르지 않고 검은 여백을 넣습니다.
 3. **올릴 문구**에 글자를 입력합니다. 최대 **160자·4줄**, 크기·흰색/노랑/민트·어두운 배경을 선택하고, 미리보기에서 문구를 드래그해 위치를 잡습니다.
 4. **쇼츠 저장**을 누릅니다. **9:16**, **1080×1920 / 720×1280**, **30fps H.264 MP4**로 저장하며 **원본 소리 포함**을 끄면 무음으로 만듭니다.
 
+**저장이 끝나면 하단에 형광 라임색 ✓ 쇼츠 저장 완료 표시가 남습니다.** 파일명·길이·용량을 확인하고 **완성된 영상 열기** 또는 **저장 폴더**를 누르세요. 구간·문구·구도를 바꾸면 **설정 변경 · 다시 저장 필요**로 전환되어 이전 파일과 구분됩니다.
+
 - 구간 길이는 **0.2초~3분**. Windows **동영상 → 신플레이어 쇼츠**에 저장합니다. 원본과 기존 결과 파일을 덮어쓰지 않습니다.
 - **로컬 영상 전용**이며 자막이나 API 키가 필요하지 않습니다. GPT 토큰을 사용하지 않습니다. 재생 중인 원본의 위치·배속은 그대로 유지합니다.
 - 네 가지 UI를 지원하고, 작업 취소나 창 닫기 시 변환을 중단하고 미완성 파일을 정리합니다.
 
-**[이 화면에서 실제로 저장한 MP4 보기](https://github.com/ai-campus-kr/shin-player/releases/download/v0.6.0-beta.11/ShinPlayer-shorts-demo.mp4)** · 기능 설명용 합성 영상으로 검증한 실제 앱 화면과 결과입니다.
+**[이 화면에서 실제로 저장한 MP4 보기](https://github.com/ai-campus-kr/shin-player/releases/download/v1.0.0/ShinPlayer-shorts-demo.mp4)** · 기능 설명용 합성 영상으로 검증한 실제 앱 화면과 결과입니다.
 
 ## 마음에 드는 구간을 GIF로
 
 로컬 영상 파일을 열고 **GIF** 버튼으로 움직이는 짤을 만드세요. **타임라인의 양 끝 손잡이를 드래그**해 구간을 고르고 **GIF 만들기**를 누르면 됩니다. 가운데 선택 영역을 끌면 길이를 유지하며 구간을 옮깁니다.
+
+**형광 라임색 ✓ GIF 저장 완료**와 **완성된 GIF 열기** 버튼으로 완료를 바로 확인합니다. 완료 영역은 스크롤 밖에 고정되며 저절로 사라지지 않습니다. 저장 중·취소·실패·설정 변경도 각각 표시합니다.
 
 - **선택 확대 / 전체 보기**로 짧은 구간도 정밀하게 조절합니다. 손잡이에서 방향키는 0.1초, Shift는 1초, Ctrl은 10초씩 이동합니다.
 - 시작·끝 시간 직접 입력과 **현재 위치** 버튼도 사용할 수 있으며 타임라인과 서로 연동됩니다.
@@ -56,13 +60,13 @@
 
 **GIF 만들기는 로컬 영상 파일만 지원합니다. 유튜브 GIF 기능은 제공하지 않습니다.**
 
-<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v0.6.0-beta.6/docs/screenshots/v0.6.0-beta.6/01-gif-range.png" width="620" alt="신플레이어 GIF 구간 선택: 드래그 손잡이, 선택 영역 이동, 확대와 시간 입력 연동"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/ai-campus-kr/shin-player/v1.0.0/docs/screenshots/v1.0.0/02-gif-completed.png" width="620" alt="신플레이어 GIF 구간 선택: 드래그 손잡이, 선택 영역 이동, 확대와 시간 입력 연동"></p>
 
 *합성 테스트 영상으로 촬영한 실제 앱 화면입니다.*
 
 ## 빠른 시작
 
-1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
+1. [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v1.0.0)에서 `ShinPlayer-버전-win-x64.zip`을 받고 압축을 모두 풉니다.
 2. `Install.cmd`를 실행합니다. 관리자 권한과 별도 .NET 설치는 필요하지 않습니다.
 3. 시작 메뉴의 **신플레이어**를 열고 영상 파일을 끌어놓거나 **영상 열기**를 누릅니다.
 
@@ -228,9 +232,9 @@ DRM으로 보호된 영상, 손상된 파일, 특수한 독점 형식까지 모�
 
 </details>
 
-## 유튜브와 영상 AI 채팅 — 0.6 베타
+## 유튜브와 영상 AI 채팅
 
-**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [베타 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11)
+**“이 내용 설명해줘” → 스크립트로 답변. “그 부분으로 이동해줘” → 재생 위치 이동.** [v1.0 다운로드](https://github.com/ai-campus-kr/shin-player/releases/tag/v1.0.0)
 
 1. 항상 표시되는 상단 **주소창**에 유튜브 주소를 입력하고 **Enter** 또는 **→**를 누릅니다. **Alt+D / Ctrl+U**로 주소를 선택할 수 있으며, `youtube.com`처럼 `https://`를 생략해도 됩니다. 앱 내부의 **Edge WebView2 브라우저**로 일반 유튜브 페이지를 엽니다.
 2. **영상을 열면 자막을 자동으로 불러옵니다.** 자막이 없으면 <strong>“자막이 없는 영상입니다”</strong>라고 표시합니다. 채팅은 넓은 창에서 오른쪽, 좁은 창에서 아래쪽에 표시되며 **채팅 배치**에서 위치를 선택할 수 있습니다. 기존 스크립트 창과 새 **동영상 정보 → 스크립트** 화면을 모두 지원합니다.
@@ -251,7 +255,7 @@ DRM으로 보호된 영상, 손상된 파일, 특수한 독점 형식까지 모�
 
 WebView2 Runtime이 없으면 Microsoft 공식 설치 안내를 표시합니다. 유튜브 로그인·지역·영상 제한은 적용되며 **외부 열기**로 외부 브라우저를 사용할 수 있습니다. 외부 창에는 AI 이동이 연결되지 않습니다. 웹 영상은 유튜브 자체 컨트롤을 쓰며 로컬 mpv의 배속·음량 증폭·일괄 캡처 설정을 적용하지 않습니다. 영상 스트림 추출이나 다운로드 도구는 사용하지 않습니다.
 
-**베타 검증 범위:** 86개 통합 검사로 키 저장·연결 상태, 자막 자동 로딩·없음·영상 변경, 채팅 배치와 로컬 GIF를 확인했습니다. 실제 YouTube 자동 자막·GPT-5.4-mini 답변·구간 이동도 별도로 검증했습니다. 자막의 제공 여부와 사이트 변경에 따라 일부 영상은 지원되지 않을 수 있습니다.
+**검증 범위:** 95개 통합 검사로 키 저장·연결 상태, 자막 자동 로딩·없음·영상 변경, 채팅 배치와 로컬 GIF를 확인했습니다. 실제 YouTube 자동 자막·GPT-5.4-mini 답변·구간 이동은 앞선 베타 개발에서 별도로 검증했습니다. v1.0 회귀 검사에는 대체 API 응답과 격리된 WebView2 페이지를 사용했습니다. 자막의 제공 여부와 사이트 변경에 따라 일부 영상은 지원되지 않을 수 있습니다.
 
 음량 증폭과 로컬 자막 캡처는 계속 **API 키·토큰 비용 없이 PC에서 처리**합니다.
 
@@ -259,7 +263,7 @@ WebView2 Runtime이 없으면 Microsoft 공식 설치 안내를 표시합니다.
 
 C# / .NET 8 WPF와 mpv로 만든 Windows 네이티브 앱입니다. 로컬 재생은 mpv, 선택적 유튜브 기능은 Edge WebView2를 사용하며 개발 서버 없이 실행됩니다.
 
-0.6 베타는 WPF/libmpv와 격리된 WebView2를 사용하는 **86개 통합 검사**로 검증합니다. API 검사는 대체 응답을 사용하며 실제 서비스 검증 한계는 위에 명시했습니다. [변경 기록](CHANGELOG.md)
+v1.0은 WPF/libmpv와 격리된 WebView2를 사용하는 **95개 통합 검사**로 검증합니다. API 검사는 대체 응답을 사용하며 실제 서비스 검증 한계는 위에 명시했습니다. [변경 기록](CHANGELOG.md)
 
 <details>
 <summary><strong>소스 빌드 및 설치</strong></summary>
@@ -305,7 +309,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 자막 캡처 검사는 별도의 합성 MP4/MKV로 수행합니다. 내장 자막 트랙 선택, 자막 구간 중간 시점의 실제 프레임 색상, PNG의 한글 자막, 자막 제외 옵션, 중복 저장, 취소 시 부분 결과 보존, 실행 중인 작업 프로세스 종료, 재생 위치 유지와 캡처 창을 확인합니다. 검사용 이미지는 `artifacts` 아래에만 저장합니다.
 
-총 86개 통합 검사를 실행합니다. 탐색 좌표는 두 창 크기와 재생목록 상태별 28개 지점, 레이아웃 갱신 전 반복 입력, 놓기 위치, 캡처 해제, 파일 전환과 전체화면을 포함합니다. 1~2배 WPF 레이아웃 변환도 검사하지만 물리적인 마우스 입력이나 실제 모니터 DPI 변경을 자동화한 검사는 아닙니다. UI는 네 가지 스타일의 시작 화면·최소 창·재생목록·캡처 창을 렌더하고 버튼 겹침과 자막 선택 표시를 확인합니다. 설정 직렬화와 이전 설정 호환, 선택 버튼, 재생 중 스타일 전환과 위치·배속 유지도 검사합니다.
+총 95개 통합 검사를 실행합니다. 탐색 좌표는 두 창 크기와 재생목록 상태별 28개 지점, 레이아웃 갱신 전 반복 입력, 놓기 위치, 캡처 해제, 파일 전환과 전체화면을 포함합니다. 1~2배 WPF 레이아웃 변환도 검사하지만 물리적인 마우스 입력이나 실제 모니터 DPI 변경을 자동화한 검사는 아닙니다. UI는 네 가지 스타일의 시작 화면·최소 창·재생목록·캡처 창을 렌더하고 버튼 겹침과 자막 선택 표시를 확인합니다. 설정 직렬화와 이전 설정 호환, 선택 버튼, 재생 중 스타일 전환과 위치·배속 유지도 검사합니다.
 
 음량 증폭 검사는 합성 PCM 음원을 음소거 상태로 재생하고 mpv 필터 출력의 피크·RMS 레벨을 측정합니다. 모든 증폭 단계의 실제 게인, 최대 증폭 시 리미터 한도, 끄기 시 원래 진폭 복원, 초기 설정 복원, 빠른 연속 조절과 다른 필터 보존을 확인합니다.
 
@@ -335,4 +339,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 
 ---
 
-[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v0.6.0-beta.11) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)
+[한국AI교육진흥원](https://github.com/ai-campus-kr) · [최신 릴리스](https://github.com/ai-campus-kr/shin-player/releases/tag/v1.0.0) · [오류 제보와 기능 제안](https://github.com/ai-campus-kr/shin-player/issues)
