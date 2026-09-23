@@ -28,12 +28,12 @@ public partial class MainWindow
             try
             {
                 var detail = await run();
-                results.Add(new { name, passed = true, elapsedMs = timer.Elapsed.TotalMilliseconds, detail });
+                results.Add(new { name, passed = true, elapsedMs = timer.Elapsed.TotalMilliseconds, detail, window = new { visible = IsVisible, state = WindowState.ToString(), enabled = IsEnabled, addressWidth = AddressInput.ActualWidth, addressHeight = AddressInput.ActualHeight } });
             }
             catch (Exception ex)
             {
                 failures++;
-                results.Add(new { name, passed = false, elapsedMs = timer.Elapsed.TotalMilliseconds, error = ex.ToString() });
+                results.Add(new { name, passed = false, elapsedMs = timer.Elapsed.TotalMilliseconds, error = ex.ToString(), window = new { visible = IsVisible, state = WindowState.ToString(), enabled = IsEnabled, addressWidth = AddressInput.ActualWidth, addressHeight = AddressInput.ActualHeight } });
             }
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "results.json"), JsonSerializer.Serialize(new { failures, tests = results }, new JsonSerializerOptions { WriteIndented = true }));
         }

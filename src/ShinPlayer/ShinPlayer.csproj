@@ -12,7 +12,7 @@
     <StartupObject>ShinPlayer.Program</StartupObject>
     <ApplicationIcon>Assets\ShinPlayer.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Product>신플레이어</Product>
     <Description>빠른 Windows 영상 플레이어</Description>
     <Company>ShinPlayer</Company>
@@ -26,5 +26,8 @@
     <Content Include="..\..\native\libmpv-2.dll" Link="libmpv-2.dll" CopyToOutputDirectory="PreserveNewest" Condition="'$(IncludeNativeEngine)' != 'false'" />
     <Resource Include="Assets\ShinPlayer.ico" />
     <Resource Include="Assets\ShinPlayer.png" />
+    <Resource Include="Assets\Fonts\*.ttf" />
+    <Content Include="Assets\Fonts\*-OFL.txt" Link="licenses\fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\Fonts\SOURCES.json" Link="licenses\fonts\SOURCES.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

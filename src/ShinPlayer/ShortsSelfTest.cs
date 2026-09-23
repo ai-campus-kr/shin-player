@@ -21,6 +21,7 @@ public partial class MainWindow
         var destination = Path.Combine(output, "shorts-output");
         var progress = new ImmediateProgress<string>(_ => { });
         var options = new ShortsOptions(1, 3, 720, PanX: 0, Text: "신플레이어\n이 장면을 쇼츠로", TextColor: "#FFE03B");
+        await RunShortsEditingTestsAsync(test, tools, video, fixtures, output);
 
         await test("shorts-validation-text-limits-and-three-minute-range", () =>
         {
@@ -179,7 +180,15 @@ public partial class MainWindow
                 dialog.Range.AdjustKey(GifRangeSelector.Part.End, Key.Right, ModifierKeys.None);
                 ShortsCheck(dialog.SaveButton.IsEnabled, "Range drag did not recover invalid typed input");
                 VisualChildren<Button>(dialog).Single(b => Equals(b.Content, "가운데 맞춤")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                dialog.TextTab.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); dialog.UpdateLayout();
                 VisualChildren<Button>(dialog).Single(b => Equals(b.Content, "위")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                dialog.FontInput.SelectedIndex = 1; dialog.ColorInput.HexInput.Text = "#B7FF00";
+                dialog.ColorInput.HexInput.Text = "#zzzzzz"; ShortsCheck(!dialog.SaveButton.IsEnabled, "Invalid custom color allows saving");
+                dialog.ColorInput.HexInput.Text = "#B7FF00"; ShortsCheck(dialog.SaveButton.IsEnabled, "Valid color does not recover saving");
+                dialog.ZoomInput.Value = 1.5;
+                dialog.Preview.RaiseEvent(new MouseWheelEventArgs(Mouse.PrimaryDevice, Environment.TickCount, 120) { RoutedEvent = Mouse.MouseWheelEvent });
+                ShortsCheck(Math.Abs(dialog.ReadOptions().Zoom - 1.6) < .001, "Preview wheel and zoom slider disagree");
+                dialog.ZoomInput.Value = 1;
                 dialog.Caption.Text = "영상을 보다가,\n바로 쇼츠로.";
                 foreach (var design in UiDesigns.All)
                 {
@@ -189,6 +198,9 @@ public partial class MainWindow
                     await Task.Delay(80);
                     string screenshot = Path.Combine(output, "shorts-" + design.Id + ".png");
                     OnlineSelfTest.Capture(dialog, screenshot);
+                    dialog.FrameTab.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); dialog.UpdateLayout();
+                    OnlineSelfTest.Capture(dialog, Path.Combine(output, "shorts-frame-" + design.Id + ".png"));
+                    dialog.TextTab.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); dialog.UpdateLayout();
                     var captured = LoadPixels(screenshot);
                     var previewBounds = dialog.Preview.TransformToAncestor(dialog).TransformBounds(new Rect(dialog.Preview.RenderSize));
                     int visible = 0, sampled = 0;
@@ -217,12 +229,15 @@ public partial class MainWindow
                 OnlineSelfTest.Capture(dialog, Path.Combine(output, "shorts-dialog.png"));
                 File.Copy(dialog.SavedPath!, Path.Combine(output, "ShinPlayer-shorts-demo.mp4"), true);
                 await ShortsFrameAsync(tools, dialog.SavedPath!, "shorts-demo-frame.png", output);
+                dialog.FontInput.SelectedIndex = 2;
+                ShortsCheck(dialog.Feedback.State == ExportState.Edited, "Font change still appears saved");
                 dialog.EndTime.Text = "8";
                 ShortsCheck(dialog.Feedback.State == ExportState.Edited && dialog.OpenResult.Content.ToString() == "이전 영상 열기", "Changed shorts settings still appear saved");
                 var pending = dialog.ExportAsync(destination); await Task.Delay(80); dialog.Close(); await pending;
                 await WaitUntilAsync(() => _shortsWindow == null, TimeSpan.FromSeconds(5));
                 ShortsCheck(dialog.Feedback.State == ExportState.Cancelled && !dialog.Feedback.IsProgressVisible, "Cancellation looks like success");
                 ShortsCheck(Directory.GetFiles(destination, "*.partial", SearchOption.AllDirectories).Length == 0, "Closing editor left unfinished output");
+                ShortsCheck(IsVisible && IsEnabled && AddressBar.IsVisible && AddressInput.ActualHeight >= 28, "Closing shorts editor hid or disabled the player address bar");
                 return new { button = true, preview = true, dragCoordinates = true, themes = 4, typedInputRecovery = true, closeCancels = true, neonCompletion = true, fixedFooter = true, editedState = true, failureRetry = true };
             }
             finally { await dialog.StopAsync(); dialog.Close(); }

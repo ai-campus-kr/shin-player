@@ -1,0 +1,56 @@
+[
+  {
+    "file": "Pretendard-Bold.ttf",
+    "family": "Pretendard",
+    "source": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/packages/pretendard/dist/public/static/alternative/Pretendard-Bold.ttf",
+    "license": "OFL-1.1",
+    "licenseSource": "https://raw.githubusercontent.com/orioncactus/pretendard/v1.3.9/LICENSE",
+    "licenseFile": "Pretendard-Bold-OFL.txt",
+    "sha256": "c16b88c670d23e83fa1170c954cbc4822d3b8dad3c3cde15d798a94b43d97985"
+  },
+  {
+    "file": "BlackHanSans-Regular.ttf",
+    "family": "Black Han Sans",
+    "source": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/blackhansans/BlackHanSans-Regular.ttf",
+    "license": "OFL-1.1",
+    "licenseSource": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/blackhansans/OFL.txt",
+    "licenseFile": "BlackHanSans-Regular-OFL.txt",
+    "sha256": "31960809284026681774a8e52dc19ebcad26cf69b0ad9d560f288296fbb52739"
+  },
+  {
+    "file": "DoHyeon-Regular.ttf",
+    "family": "Do Hyeon",
+    "source": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/dohyeon/DoHyeon-Regular.ttf",
+    "license": "OFL-1.1",
+    "licenseSource": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/dohyeon/OFL.txt",
+    "licenseFile": "DoHyeon-Regular-OFL.txt",
+    "sha256": "35644be7f28e0a68a447b1f7af351dcde5674b870f24f7b5f43e26d00b4ab653"
+  },
+  {
+    "file": "Jua-Regular.ttf",
+    "family": "Jua",
+    "source": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/jua/Jua-Regular.ttf",
+    "license": "OFL-1.1",
+    "licenseSource": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/jua/OFL.txt",
+    "licenseFile": "Jua-Regular-OFL.txt",
+    "sha256": "769677aef240bfc3b9965f2b50748075bff885e6c6992fc591a3fb268279f898"
+  },
+  {
+    "file": "NanumMyeongjo-Bold.ttf",
+    "family": "Nanum Myeongjo",
+    "source": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/nanummyeongjo/NanumMyeongjo-Bold.ttf",
+    "license": "OFL-1.1",
+    "licenseSource": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/nanummyeongjo/OFL.txt",
+    "licenseFile": "NanumMyeongjo-Bold-OFL.txt",
+    "sha256": "bc9ed8e60d93fe6db054b8fb988481b625f2eef8cb2317ad0e9834681b8fe3f3"
+  },
+  {
+    "file": "Gaegu-Bold.ttf",
+    "family": "Gaegu",
+    "source": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/gaegu/Gaegu-Bold.ttf",
+    "license": "OFL-1.1",
+    "licenseSource": "https://raw.githubusercontent.com/google/fonts/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/gaegu/OFL.txt",
+    "licenseFile": "Gaegu-Bold-OFL.txt",
+    "sha256": "cc38a4af9506a45254d1ce07c589ec473d9e5f0be319e5a77b17c214903f8c1c"
+  }
+]

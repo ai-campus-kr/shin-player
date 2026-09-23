@@ -13,14 +13,28 @@ namespace ShinPlayer;
 
 internal enum ShortsFit { Fill, Contain }
 
+// Ratios refer to the upright, square-pixel source, before fitting to the output canvas.
+internal sealed record ShortsCrop(double X = 0, double Y = 0, double Width = 1, double Height = 1)
+{
+    internal static readonly ShortsCrop Full = new();
+    internal void Validate()
+    {
+        if (new[] { X, Y, Width, Height }.Any(v => !double.IsFinite(v)) || X < 0 || Y < 0 ||
+            Width < .02 - 1e-9 || Height < .02 - 1e-9 || X + Width > 1.000001 || Y + Height > 1.000001)
+            throw new InvalidOperationException("영상 안에서 가로·세로 2% 이상의 영역을 선택하세요.");
+    }
+}
+
 // All composition coordinates use a 1080 × 1920 canvas, independent of display DPI.
 internal sealed record ShortsOptions(double Start, double End, int Width = 1080, ShortsFit Fit = ShortsFit.Fill,
     double PanX = .5, double PanY = .5, bool Audio = true, string Text = "", double FontSize = 64,
-    string TextColor = "#FFFFFF", bool TextBox = true, double TextX = .5, double TextY = .18)
+    string TextColor = "#FFFFFF", bool TextBox = true, double TextX = .5, double TextY = .18,
+    string FontId = ShortsFonts.DefaultId, double Zoom = 1, ShortsCrop? Crop = null)
 {
     internal const int CanvasWidth = 1080, CanvasHeight = 1920;
     internal double Length => End - Start;
     internal int Height => Width * 16 / 9;
+    internal ShortsCrop SourceCrop => Crop ?? ShortsCrop.Full;
     internal void Validate(double duration)
     {
         if (!double.IsFinite(duration) || duration < .2 || !double.IsFinite(Start) || !double.IsFinite(End) ||
@@ -30,10 +44,13 @@ internal sealed record ShortsOptions(double Start, double End, int Width = 1080,
         if (new[] { PanX, PanY, TextX, TextY }.Any(x => !double.IsFinite(x) || x < 0 || x > 1))
             throw new InvalidOperationException("영상과 글자 위치를 확인하세요.");
         if (!double.IsFinite(FontSize) || FontSize < 32 || FontSize > 100 || Text.Length > 160 ||
-            Text.Any(c => char.IsControl(c) && c is not ('\n' or '\r' or '\t')) ||
-            TextColor is not ("#FFFFFF" or "#FFE03B" or "#55E3C2"))
+            Text.Any(c => char.IsControl(c) && c is not ('\n' or '\r' or '\t')))
             throw new InvalidOperationException("문구는 160자 이하, 글자 크기는 32~100으로 설정하세요.");
+        if (!IsTextColor(TextColor)) throw new InvalidOperationException("글자색을 고르거나 #RRGGBB 형식으로 입력하세요. 예: #FF5A36");
+        if (!double.IsFinite(Zoom) || Zoom < 1 || Zoom > 4) throw new InvalidOperationException("영상 확대는 100~400%로 설정하세요.");
+        SourceCrop.Validate(); ShortsFonts.Get(FontId);
     }
+    internal static bool IsTextColor(string? value) => value is { Length: 7 } && value[0] == '#' && value.Skip(1).All(Uri.IsHexDigit);
 }
 
 internal sealed record ShortsLabel(BitmapSource Bitmap, Rect Bounds);
@@ -42,12 +59,11 @@ internal static class ShortsComposition
 {
     internal static Rect VideoBounds(double sourceWidth, double sourceHeight, ShortsOptions options)
     {
+        var crop = options.SourceCrop; sourceWidth *= crop.Width; sourceHeight *= crop.Height;
         double sx = ShortsOptions.CanvasWidth / sourceWidth, sy = ShortsOptions.CanvasHeight / sourceHeight;
-        double scale = options.Fit == ShortsFit.Fill ? Math.Max(sx, sy) : Math.Min(sx, sy);
+        double scale = (options.Fit == ShortsFit.Fill ? Math.Max(sx, sy) : Math.Min(sx, sy)) * options.Zoom;
         double w = sourceWidth * scale, h = sourceHeight * scale;
-        return options.Fit == ShortsFit.Fill
-            ? new(-(w - ShortsOptions.CanvasWidth) * options.PanX, -(h - ShortsOptions.CanvasHeight) * options.PanY, w, h)
-            : new((ShortsOptions.CanvasWidth - w) / 2, (ShortsOptions.CanvasHeight - h) / 2, w, h);
+        return new((ShortsOptions.CanvasWidth - w) * options.PanX, (ShortsOptions.CanvasHeight - h) * options.PanY, w, h);
     }
 
     internal static Rect LabelBounds(double width, double height, ShortsOptions options) => new(
@@ -57,10 +73,11 @@ internal static class ShortsComposition
     internal static ShortsLabel? RenderLabel(ShortsOptions options)
     {
         if (string.IsNullOrWhiteSpace(options.Text)) return null;
+        var font = ShortsFonts.Get(options.FontId);
         var text = new TextBlock
         {
             Text = options.Text.Replace("\r\n", "\n").Replace('\r', '\n').Replace('\t', ' ').Trim(),
-            FontFamily = new FontFamily("Malgun Gothic"), FontWeight = FontWeights.Bold, FontSize = options.FontSize,
+            FontFamily = font.Family, FontWeight = font.Weight, FontSize = options.FontSize,
             LineHeight = options.FontSize * 1.3, LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
             TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center,
             Foreground = UiDesigns.Brush(options.TextColor), MaxWidth = 900
@@ -144,9 +161,21 @@ internal static class ShortsExport
                 ShortsComposition.SavePng(label.Bitmap, Path.Combine(temp, "label.png"));
                 args.AddRange(["-loop", "1", "-framerate", "30", "-i", "label.png"]);
             }
-            string geometry = options.Fit == ShortsFit.Fill
-                ? $"scale=1080:1920:force_original_aspect_ratio=increase:force_divisible_by=2,crop=1080:1920:x='(iw-ow)*{N(options.PanX)}':y='(ih-oh)*{N(options.PanY)}'"
-                : "scale=1080:1920:force_original_aspect_ratio=decrease:force_divisible_by=2,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=black";
+            var crop = options.SourceCrop;
+            string geometry = crop == ShortsCrop.Full ? "" : $"crop=w='iw*{N(crop.Width)}':h='ih*{N(crop.Height)}':x='iw*{N(crop.X)}':y='ih*{N(crop.Y)}':exact=1,";
+            if (options.Fit == ShortsFit.Fill)
+            {
+                // Crop before upscaling: a thin custom region must not allocate a gigantic intermediate frame.
+                geometry += $"crop=w='max(1,min(iw,ih*9/16)/{N(options.Zoom)})':h='max(1,min(ih,iw*16/9)/{N(options.Zoom)})':" +
+                    $"x='(iw-ow)*{N(options.PanX)}':y='(ih-oh)*{N(options.PanY)}':exact=1,scale=1080:1920";
+            }
+            else
+            {
+                // Contain has a bounded intermediate of at most 4320 × 7680 at 400%.
+                geometry += $"scale={N(1080 * options.Zoom)}:{N(1920 * options.Zoom)}:force_original_aspect_ratio=decrease:force_divisible_by=2," +
+                    $"crop=w='min(iw,1080)':h='min(ih,1920)':x='(iw-ow)*{N(options.PanX)}':y='(ih-oh)*{N(options.PanY)}'," +
+                    $"pad=1080:1920:x='(ow-iw)*{N(options.PanX)}':y='(oh-ih)*{N(options.PanY)}':color=black";
+            }
             string filter = $"[0:{video.VideoIndex}]setpts=PTS-STARTPTS,scale=trunc(iw*sar/2)*2:ih,setsar=1,{geometry},fps=30[base];";
             filter += label == null ? "[base]" : $"[base][1:v]overlay=x={N(label.Bounds.X)}:y={N(label.Bounds.Y)}:shortest=1:format=auto,";
             filter += $"scale={options.Width}:{options.Height},setsar=1,format=yuv420p[v]";

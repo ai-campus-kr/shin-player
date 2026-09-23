@@ -34,6 +34,21 @@ The package hash is checked before extracting executables. The archive's license
 
 The self-contained Windows build includes .NET 8 and Windows Desktop runtime files. They are provided under their Microsoft/.NET open-source licenses. The exact runtime package's licenses and notices are copied to `licenses/dotnet-runtime` and `licenses/dotnet-windowsdesktop` during packaging. See also https://github.com/dotnet/runtime/blob/main/LICENSE.TXT and https://github.com/dotnet/wpf/blob/main/LICENSE.TXT.
 
+## Bundled Korean caption fonts
+
+Shorts captions include six original, unmodified font files under the **SIL Open Font License 1.1**. They are embedded for use within ShinPlayer; they are not installed as system fonts. Commercial use of the fonts in rendered videos is allowed under those licenses. The fonts themselves are not relicensed under ShinPlayer's MIT license and must not be sold on their own.
+
+| Font | Upstream |
+| --- | --- |
+| Pretendard Bold | https://github.com/orioncactus/pretendard/tree/v1.3.9 |
+| Black Han Sans | https://github.com/google/fonts/tree/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/blackhansans |
+| Do Hyeon | https://github.com/google/fonts/tree/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/dohyeon |
+| Jua | https://github.com/google/fonts/tree/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/jua |
+| Nanum Myeongjo Bold | https://github.com/google/fonts/tree/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/nanummyeongjo |
+| Gaegu Bold | https://github.com/google/fonts/tree/e44c4b011a820c2cbe2fd2cfa8052037d7edb571/ofl/gaegu |
+
+Each font's original copyright notice, reserved font names, full OFL text, pinned source URL, and SHA256 are in `src/ShinPlayer/Assets/Fonts/`. Public builds retain the notices and provenance manifest in `licenses/fonts/`. Exported videos contain rasterized lettering, not a redistributed font file.
+
 ## Application icon and test material
 
 The ShinPlayer icon consists of original geometric shapes. Test footage uses FFmpeg's synthetic testsrc2 and sine sources; subtitle text was created for this project. No user videos or third-party films are included.
